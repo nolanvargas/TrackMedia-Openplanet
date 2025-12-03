@@ -1,0 +1,6 @@
+[meta]
+name     = "TrackMedia"
+author   = "Yhomas"
+category = "Map Editor"
+version  = "0.0.1"
+assets   = ["trebuc.ttf"]
