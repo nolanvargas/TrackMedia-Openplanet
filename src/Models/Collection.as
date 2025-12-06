@@ -15,6 +15,10 @@ class Collection {
     }
 
     void FromJson(Json::Value@ json) {
+        if (json is null) {
+            Logging::Warn("Collection::FromJson called with null JSON");
+            return;
+        }
         try {
             collectionId = JsonUtils::SafeGetString(json, "collection_id");
             accountId = JsonUtils::SafeGetString(json, "account_id");
@@ -24,7 +28,7 @@ class Collection {
             createdAt = JsonUtils::SafeGetInt64(json, "created_at");
             isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
         } catch {
-            warn("Error parsing Collection JSON: " + getExceptionInfo());
+            Logging::Error("Failed to parse Collection JSON: " + getExceptionInfo());
         }
     }
 
@@ -42,16 +46,22 @@ class Collection {
     }
     
     void UpdateWithFullData(Json::Value@ json) {
+        if (json is null) {
+            Logging::Warn("Collection::UpdateWithFullData called with null JSON");
+            return;
+        }
         try {
             collectionId = JsonUtils::SafeGetString(json, "collection_id");
             accountId = JsonUtils::SafeGetString(json, "account_id");
             collectionName = JsonUtils::SafeGetString(json, "collection_name");
             createdAt = JsonUtils::SafeGetInt64(json, "created_at");
             isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            
             string newCoverKey = JsonUtils::SafeGetString(json, "cover_key");
             if (newCoverKey.Length > 0) {
                 coverKey = newCoverKey;
             }
+            
             items.RemoveRange(0, items.Length);
             if (json.HasKey("items") && json.Get("items").GetType() == Json::Type::Array) {
                 auto itemsArray = json.Get("items");
@@ -66,7 +76,7 @@ class Collection {
                 }
             }
         } catch {
-            Logging::Error("Error updating Collection with full data: " + getExceptionInfo());
+            Logging::Error("Failed to update Collection with full data: " + getExceptionInfo());
         }
     }
 }

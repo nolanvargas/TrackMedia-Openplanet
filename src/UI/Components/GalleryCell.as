@@ -29,6 +29,14 @@ namespace GalleryCell {
         if (data.lockedAspectRatio) {
             return contentWidth;
         }
+        // Prefer texture's actual size if available, as it may differ from stored dimensions
+        if (data.imageState == ImageState::Type::Loaded && data.imageTexture !is null) {
+            vec2 texSize = data.imageTexture.GetSize();
+            if (texSize.x > 0 && texSize.y > 0) {
+                return (texSize.y / texSize.x) * contentWidth;
+            }
+        }
+        // Fall back to stored dimensions
         if (data.imageWidth > 0 && data.imageHeight > 0) {
             return (float(data.imageHeight) / float(data.imageWidth)) * contentWidth;
         }
@@ -51,7 +59,11 @@ namespace GalleryCell {
             if (data.title.Length > 0) {
                 UI::Dummy(vec2(0, config.padding));
                 UI::SetCursorPosX(config.padding);
-                UI::Text(data.title.Length > 30 ? data.title.SubStr(0, 27) + "..." : data.title);
+                if (data.title.Length > 30) {
+                    UI::Text(data.title.SubStr(0, 27) + "...");
+                } else {
+                    UI::Text(data.title);
+                }
             }
             
             if (data.subtitle.Length > 0) {
@@ -76,9 +88,13 @@ namespace GalleryCell {
     void RenderButtonsRow(array<ICellButton@>@ buttons, uint index, float contentWidth, Config@ config) {
         if (buttons is null || buttons.Length == 0) return;
         
+        UI::PushID("ButtonsRow##" + index);
+        
         for (uint i = 0; i < buttons.Length; i++) {
             ICellButton@ button = buttons[i];
             if (button is null) continue;
+            
+            UI::PushID(int(i));
             
             if (i > 0) {
                 UI::SameLine();
@@ -116,7 +132,12 @@ namespace GalleryCell {
                 UI::BeginDisabled();
             }
             
-            if (UI::Button(button.GetLabel(index) + "##btn" + index + "_" + i, vec2(buttonWidth, config.buttonHeight))) {
+            string label = button.GetLabel(index);
+            string buttonId = (label.Length > 0) 
+                ? (label + "##btn")
+                : "##btn";
+            
+            if (UI::Button(buttonId, vec2(buttonWidth, config.buttonHeight))) {
                 button.OnClick(index);
             }
             
@@ -141,7 +162,11 @@ namespace GalleryCell {
             
             UI::PopStyleVar();
             UI::PopStyleColor(4);
+            
+            UI::PopID();
         }
+        
+        UI::PopID();
     }
     
     void RenderImage(GalleryCellData@ data, float contentWidth, float defaultImageWidth) {

@@ -4,6 +4,7 @@ namespace ThemePacksPage {
         
         if (!State::hasRequestedThemePacks && !State::isRequestingThemePacks) {
             Logging::Info("ThemePacksPage: Starting theme packs request");
+            State::isRequestingThemePacks = true;
             startnew(ApiService::RequestThemePacks);
         }
 
@@ -17,9 +18,16 @@ namespace ThemePacksPage {
                     RenderThemePacksGrid();
                     return;
                 } else {
-                    activeTab.PushTabStyle();
-                    activeTab.Render();
-                    activeTab.PopTabStyle();
+                    ThemePackTab@ themePackTab = cast<ThemePackTab>(activeTab);
+                    if (themePackTab !is null) {
+                        activeTab.PushTabStyle(State::activeTabIndex);
+                        activeTab.Render();
+                        activeTab.PopTabStyleWithText();  // 6 colors including text color (needed for last 2 shades with black text)
+                    } else {
+                        activeTab.PushTabStyle();
+                        activeTab.Render();
+                        activeTab.PopTabStyle();
+                    }
                     return;
                 }
             }
@@ -37,6 +45,7 @@ namespace ThemePacksPage {
                 UI::Text("Status: " + State::themePacksRequestStatus);
                 if (UI::Button("Refresh")) {
                     State::hasRequestedThemePacks = false;
+                    State::isRequestingThemePacks = true;
                     startnew(ApiService::RequestThemePacks);
                 }
             }

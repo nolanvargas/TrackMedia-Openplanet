@@ -1,8 +1,13 @@
 namespace SkinExtractor {
     void ExtractBlockSkinProperties(CGameCtnBlock@ block) {
-        if (block is null) return;
+        if (block is null) {
+            return;
+        }
+        
         auto@ blockSkin = cast<CGameCtnBlockSkin>(block.Skin);
-        if (blockSkin is null) return;
+        if (blockSkin is null) {
+            return;
+        }
         
         string skinId = blockSkin.IdName;
         if (skinId.Length > 0) {

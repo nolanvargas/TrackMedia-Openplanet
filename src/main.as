@@ -1,5 +1,5 @@
 void Main() {
-    print("TrackMedia Plugin initialized");
+    Logging::Info("TrackMedia plugin initialized");
     Fonts::Load();
     while (true) {
         yield();

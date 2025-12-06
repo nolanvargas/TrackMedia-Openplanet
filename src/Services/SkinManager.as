@@ -1,7 +1,10 @@
 namespace SkinManager {
     CGameEditorPluginMap@ GetEditorPluginMap() {
         auto editor = cast<CGameCtnEditorFree>(GetApp().Editor);
-        return editor !is null ? cast<CGameEditorPluginMap>(editor.PluginMapType) : null;
+        if (editor is null) {
+            return null;
+        }
+        return cast<CGameEditorPluginMap>(editor.PluginMapType);
     }
     
     void SetSelectedBlock(CGameCtnBlock@ block) {
@@ -26,10 +29,25 @@ namespace SkinManager {
     
     void RefreshBlockSkinLists() {
         ClearBlockSkinLists();
+        
         auto@ editor = GetEditorPluginMap();
-        if (editor is null || State::selectedBlock is null) return;
+        if (editor is null || State::selectedBlock is null) {
+            return;
+        }
+        
         auto blockModel = State::selectedBlock.BlockModel;
-        if (blockModel is null || !editor.IsBlockModelSkinnable(blockModel)) return;
+        if (blockModel is null) {
+            return;
+        }
+        
+        bool isSkinnable = false;
+        try {
+            isSkinnable = editor.IsBlockModelSkinnable(blockModel);
+        } catch {}
+        
+        if (!isSkinnable) {
+            return;
+        }
         
         wstring currSkin = "";
         wstring currBg = "";
@@ -75,10 +93,25 @@ namespace SkinManager {
     
     void RefreshItemSkinLists() {
         ClearItemSkinLists();
+        
         auto@ editor = GetEditorPluginMap();
-        if (editor is null || State::selectedItem is null) return;
+        if (editor is null || State::selectedItem is null) {
+            return;
+        }
+        
         auto itemModel = State::selectedItem.ItemModel;
-        if (itemModel is null || !editor.IsItemModelSkinnable(itemModel)) return;
+        if (itemModel is null) {
+            return;
+        }
+        
+        bool isSkinnable = false;
+        try {
+            isSkinnable = editor.IsItemModelSkinnable(itemModel);
+        } catch {}
+        
+        if (!isSkinnable) {
+            return;
+        }
         
         wstring currBg = editor.GetItemSkinBg(State::selectedItem);
         wstring currFg = editor.GetItemSkinFg(State::selectedItem);
@@ -121,9 +154,6 @@ namespace SkinManager {
         State::blockFgSelected = -1;
     }
     
-    UI::Texture@ LoadSkinTexture(const wstring &in skinFile) {
-        return null;
-    }
     
     void ClearItemSkinLists() {
         State::itemBgSkinFiles.Resize(0);

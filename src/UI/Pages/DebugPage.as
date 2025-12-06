@@ -1,4 +1,7 @@
 namespace DebugPage {
+    string collectionIdInput = "";
+    string themePackIdInput = "";
+    
     void Render() {
         // Font comparison display
         UI::Separator();
@@ -253,15 +256,79 @@ namespace DebugPage {
         // API Test Section
         UI::Separator();
         UI::Text("API Tests");
-        if (UI::Button("Fetch Collections")) {
-            startnew(ApiService::RequestCollections);
+        
+        // Media/Latest endpoint
+        if (UI::Button("Fetch Media/Latest")) {
+            startnew(ApiService::DebugRequestThumbs);
         }
         UI::SameLine();
-        if (UI::Button("Fetch Collection By ID")) {
-            // Test with a sample ID - user can modify this
-            string testId = "test-id";
-            startnew(ApiService::RequestCollectionById, testId);
+        if (State::isRequestingThumbs) {
+            UI::Text("(Requesting...)");
+        } else {
+            UI::Text("Status: " + State::thumbsRequestStatus);
         }
+        if (State::thumbsResponse != "") {
+            UI::TextWrapped("Response: " + State::thumbsResponse);
+        }
+        
+        UI::Separator();
+        
+        // Collections endpoints
+        if (UI::Button("Fetch Collections")) {
+            startnew(ApiService::DebugRequestCollections);
+        }
+        UI::SameLine();
+        if (State::isRequestingCollections) {
+            UI::Text("(Requesting...)");
+        } else {
+            UI::Text("Status: " + State::collectionsRequestStatus);
+        }
+        
+        UI::Separator();
+        
+        // Collection By ID
+        UI::Text("Collection By ID:");
+        UI::BeginGroup();
+        UI::SetNextItemWidth(200);
+        UI::InputText("##CollectionId", collectionIdInput);
+        UI::SameLine();
+        if (UI::Button("Fetch##Collection")) {
+            if (collectionIdInput.Length > 0) {
+                startnew(ApiService::DebugRequestCollectionById, collectionIdInput);
+            }
+        }
+        UI::EndGroup();
+        
+        UI::Separator();
+        
+        // Theme Packs endpoints
+        if (UI::Button("Fetch Theme Packs")) {
+            startnew(ApiService::DebugRequestThemePacks);
+        }
+        UI::SameLine();
+        if (State::isRequestingThemePacks) {
+            UI::Text("(Requesting...)");
+        } else {
+            UI::Text("Status: " + State::themePacksRequestStatus);
+        }
+        if (State::themePacksResponse != "") {
+            UI::TextWrapped("Response: " + State::themePacksResponse);
+        }
+        
+        UI::Separator();
+        
+        // Theme Pack By ID
+        UI::Text("Theme Pack By ID:");
+        UI::BeginGroup();
+        UI::SetNextItemWidth(200);
+        UI::InputText("##ThemePackId", themePackIdInput);
+        UI::SameLine();
+        if (UI::Button("Fetch##ThemePack")) {
+            if (themePackIdInput.Length > 0) {
+                startnew(ApiService::DebugRequestThemePackById, themePackIdInput);
+            }
+        }
+        UI::EndGroup();
 
         // Compatibility Test Section
         UI::Separator();

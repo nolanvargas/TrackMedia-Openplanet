@@ -6,7 +6,8 @@ namespace UIWindow {
             UI::PushStyleColor(UI::Col::ChildBg, vec4(0.133, 0.145, 0.141, 1.0));
             if (UI::BeginChild("Navigation", vec2(width, height), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoMove)) {
                 float navXOffset = 28.0f;
-                float yPos = 22.0f;
+                float verticalPadding = 22.0f;
+                float yPos = verticalPadding;
                 
                 UI::SetCursorPos(vec2(navXOffset, yPos));
                 RenderNavItem("Browse", Icons::Search, "Browse");
@@ -19,21 +20,11 @@ namespace UIWindow {
                 UI::SetCursorPos(vec2(navXOffset, yPos));
                 RenderNavItem("Theme Packs", Icons::Cubes, "Theme Packs");
                 
-                bool showPreview = State::selectedBlock !is null && 
-                                   State::blockSkinSelected >= 0 && 
-                                   State::blockSkinSelected < int(State::blockSkinFiles.Length);
-                float bottomItemsHeight = showPreview ? 232.0 : 56.0;
-                float spacerHeight = UI::GetContentRegionAvail().y - bottomItemsHeight;
-                if (spacerHeight > 0) {
-                    UI::Dummy(vec2(0, spacerHeight));
-                }
+                float targetDebugButtonY = height - verticalPadding * 2;
+                float currentY = UI::GetCursorPos().y;
+
                 
-                if (showPreview) {
-                    NavigationSkinPreview::Render(Math::Max(UI::GetContentRegionAvail().x - 16.0, 50.0));
-                }
-                
-                yPos = UI::GetCursorPos().y;
-                UI::SetCursorPos(vec2(navXOffset, yPos));
+                UI::SetCursorPos(vec2(navXOffset, targetDebugButtonY));
                 RenderNavItem("Debug", Icons::InfoCircle, "Debug");
                 UI::EndChild();
             }

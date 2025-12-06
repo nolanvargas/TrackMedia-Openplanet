@@ -19,22 +19,51 @@ class MediaItem {
     }
 
     void FromJson(Json::Value@ json) {
-        try {
-            mediaId = json.Get("mediaId", json.Get("media_id", ""));
-            accountId = json.Get("accountId", json.Get("account_id", ""));
-            userName = json.Get("userName", json.Get("user_name", ""));
-            key = json.Get("key", "");
-            thumbKey = json.Get("thumbKey", json.Get("thumb_key", ""));
-            uploadedAt = json.Get("uploadedAt", json.Get("uploaded_at", 0));
-            signType = json.Get("signType", json.Get("sign_type", ""));
-            signSize = json.Get("signSize", json.Get("sign_size", ""));
-            fileType = json.Get("fileType", json.Get("file_type", ""));
-            width = json.Get("width", 0);
-            height = json.Get("height", 0);
-            liked = json.Get("liked", false);
-        } catch {
-            warn("Error parsing MediaItem JSON");
+        if (json is null) {
+            Logging::Warn("MediaItem::FromJson called with null JSON");
+            return;
         }
+        try {
+            mediaId = JsonUtils::SafeGetString(json, "mediaId", JsonUtils::SafeGetString(json, "media_id", ""));
+            accountId = JsonUtils::SafeGetString(json, "accountId", JsonUtils::SafeGetString(json, "account_id", ""));
+            userName = JsonUtils::SafeGetString(json, "userName", JsonUtils::SafeGetString(json, "user_name", ""));
+            key = JsonUtils::SafeGetString(json, "key", "");
+            thumbKey = JsonUtils::SafeGetString(json, "thumbKey", JsonUtils::SafeGetString(json, "thumb_key", ""));
+            uploadedAt = JsonUtils::SafeGetInt64(json, "uploadedAt", JsonUtils::SafeGetInt64(json, "uploaded_at", 0));
+            signType = JsonUtils::SafeGetString(json, "signType", JsonUtils::SafeGetString(json, "sign_type", ""));
+            signSize = JsonUtils::SafeGetString(json, "signSize", JsonUtils::SafeGetString(json, "sign_size", ""));
+            fileType = JsonUtils::SafeGetString(json, "fileType", JsonUtils::SafeGetString(json, "file_type", ""));
+            
+            // Safely parse width and height - they might be strings or numbers
+            width = SafeGetInt(json, "width", 0);
+            height = SafeGetInt(json, "height", 0);
+            
+            liked = JsonUtils::SafeGetBool(json, "liked", false);
+        } catch {
+            Logging::Error("Failed to parse MediaItem JSON: " + getExceptionInfo());
+        }
+    }
+    
+    int SafeGetInt(Json::Value@ json, const string &in key, int defaultValue) {
+        if (json is null || !json.HasKey(key)) {
+            return defaultValue;
+        }
+        try {
+            auto value = json.Get(key);
+            if (value.GetType() == Json::Type::Null) {
+                return defaultValue;
+            }
+            if (value.GetType() == Json::Type::Number) {
+                return int(value);
+            }
+            if (value.GetType() == Json::Type::String) {
+                string str = value;
+                if (str.Length > 0) {
+                    return Text::ParseInt(str);
+                }
+            }
+        } catch {}
+        return defaultValue;
     }
 
     UI::Texture@ GetThumbTexture() {

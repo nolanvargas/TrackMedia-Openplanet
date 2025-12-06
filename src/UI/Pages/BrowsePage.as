@@ -2,6 +2,7 @@ namespace BrowsePage {
     void Render() {
         // Auto-fetch data if not yet requested
         if (!State::hasRequestedThumbs && !State::isRequestingThumbs) {
+            State::isRequestingThumbs = true;
             startnew(ApiService::RequestThumbs);
         }
 
@@ -11,6 +12,8 @@ namespace BrowsePage {
             } else {
                 UI::Text("No media items found.");
                 if (UI::Button("Refresh")) {
+                    State::hasRequestedThumbs = false;
+                    State::isRequestingThumbs = true;
                     startnew(ApiService::RequestThumbs);
                 }
             }

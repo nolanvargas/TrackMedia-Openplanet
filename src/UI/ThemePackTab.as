@@ -23,6 +23,13 @@ class ThemePackTab : Tab {
         return vec4(0.8f, 0.4f, 0.2f, 1); // Orange color to differentiate from collections
     }
     
+    vec4 GetColor(int index) override {
+        // Use index-based shade colors (index 0 is the Theme Packs page tab, so we start from index 1)
+        // Subtract 1 to get the actual theme pack tab index, then apply modulo 5
+        int shadeIndex = (index - 1) % 5;
+        return TabStyles::GetShadeColor(shadeIndex);
+    }
+    
     void Render() override {
         if (m_themePack is null) {
             UI::Text("Theme pack not found");

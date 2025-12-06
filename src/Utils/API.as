@@ -1,5 +1,9 @@
 namespace API {
     Net::HttpRequest@ Get(const string &in url) {
+        if (url.Length == 0) {
+            Logging::Error("API::Get called with empty URL");
+            return null;
+        }
         auto ret = Net::HttpRequest();
         ret.Method = Net::HttpMethod::Get;
         ret.Url = url;
@@ -8,18 +12,26 @@ namespace API {
     }
 
     Json::Value GetAsync(const string &in url) {
+        if (url.Length == 0) {
+            Logging::Error("API::GetAsync called with empty URL");
+            return Json::Value();
+        }
         auto req = Get(url);
+        if (req is null) {
+            return Json::Value();
+        }
         while (!req.Finished()) {
             yield();
         }
-        if (req.ResponseCode() != 200) {
-            Logging::Error("API::GetAsync failed for URL: " + url + " with code: " + req.ResponseCode());
+        int responseCode = req.ResponseCode();
+        if (responseCode != 200) {
+            Logging::Error("HTTP request failed: " + url + " (code: " + responseCode + ")");
             return Json::Value();
         }
         try {
             return req.Json();
         } catch {
-            Logging::Error("API::GetAsync failed to parse JSON for URL: " + url);
+            Logging::Error("Failed to parse JSON response from: " + url + " - " + getExceptionInfo());
             return Json::Value();
         }
     }

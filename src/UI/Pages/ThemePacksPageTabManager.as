@@ -24,6 +24,8 @@ namespace ThemePacksPageTabManager {
         
         if (State::openTabs.Length == 0) return;
         
+        // Increase tab height by 20% (default FramePadding y=4, so 4*1.2=4.8)
+        UI::PushStyleVar(UI::StyleVar::FramePadding, vec2(4.0f, 4.8f));
         UI::BeginTabBar("ThemePackTabs");
         int tabToClose = -1;
         int imGuiSelectedTab = -1;
@@ -36,7 +38,13 @@ namespace ThemePacksPageTabManager {
             string tabLabel = tab.GetLabel();
             if (tabLabel.Length == 0) tabLabel = "Tab " + i;
             
-            tab.PushTabStyle();
+            // Check if this is a ThemePackTab (index > 0) to use index-based styling
+            ThemePackTab@ themePackTab = cast<ThemePackTab>(tab);
+            if (themePackTab !is null && i > 0) {
+                tab.PushTabStyle(int(i));
+            } else {
+                tab.PushTabStyle();
+            }
             
             UI::TabItemFlags flags = (State::forceTabSelection && isTargetTab) 
                 ? UI::TabItemFlags::SetSelected 
@@ -54,7 +62,11 @@ namespace ThemePacksPageTabManager {
                 tabToClose = int(i);
             }
             
-            tab.PopTabStyle();
+            if (themePackTab !is null && i > 0) {
+                tab.PopTabStyleWithText();  // 6 colors including text color (needed for last 2 shades with black text)
+            } else {
+                tab.PopTabStyle();
+            }
         }
         
         if (imGuiSelectedTab >= 0 && imGuiSelectedTab != State::activeTabIndex) {
@@ -67,6 +79,7 @@ namespace ThemePacksPageTabManager {
         }
         
         UI::EndTabBar();
+        UI::PopStyleVar();
     }
     
     void OpenThemePackTab(ThemePack@ themePack) {

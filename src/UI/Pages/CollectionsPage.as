@@ -4,6 +4,7 @@ namespace CollectionsPage {
         
         if (!State::hasRequestedCollections && !State::isRequestingCollections) {
             Logging::Info("CollectionsPage: Starting collection request");
+            State::isRequestingCollections = true;
             startnew(ApiService::RequestCollections);
         }
 
@@ -17,9 +18,16 @@ namespace CollectionsPage {
                     RenderCollectionsGrid();
                     return;
                 } else {
-                    activeTab.PushTabStyle();
-                    activeTab.Render();
-                    activeTab.PopTabStyle();
+                    CollectionTab@ collectionTab = cast<CollectionTab>(activeTab);
+                    if (collectionTab !is null) {
+                        activeTab.PushTabStyle(State::activeTabIndex);
+                        activeTab.Render();
+                        activeTab.PopTabStyleWithText();  // 6 colors including text color (needed for last 2 shades with black text)
+                    } else {
+                        activeTab.PushTabStyle();
+                        activeTab.Render();
+                        activeTab.PopTabStyle();
+                    }
                     return;
                 }
             }
@@ -37,6 +45,7 @@ namespace CollectionsPage {
                 UI::Text("Status: " + State::collectionsRequestStatus);
                 if (UI::Button("Refresh")) {
                     State::hasRequestedCollections = false;
+                    State::isRequestingCollections = true;
                     startnew(ApiService::RequestCollections);
                 }
             }

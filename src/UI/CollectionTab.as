@@ -23,6 +23,13 @@ class CollectionTab : Tab {
         return vec4(0.2f, 0.4f, 0.8f, 1);
     }
     
+    vec4 GetColor(int index) override {
+        // Use index-based shade colors (index 0 is the Collections page tab, so we start from index 1)
+        // Subtract 1 to get the actual collection tab index, then apply modulo 5
+        int shadeIndex = (index - 1) % 5;
+        return TabStyles::GetShadeColor(shadeIndex);
+    }
+    
     void Render() override {
         if (m_collection is null) {
             UI::Text("Collection not found");

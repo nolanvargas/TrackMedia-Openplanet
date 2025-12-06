@@ -15,6 +15,10 @@ class ThemePack {
     }
 
     void FromJson(Json::Value@ json) {
+        if (json is null) {
+            Logging::Warn("ThemePack::FromJson called with null JSON");
+            return;
+        }
         try {
             themePackId = JsonUtils::SafeGetString(json, "theme_pack_id");
             accountId = JsonUtils::SafeGetString(json, "account_id");
@@ -24,7 +28,7 @@ class ThemePack {
             createdAt = JsonUtils::SafeGetInt64(json, "created_at");
             isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
         } catch {
-            warn("Error parsing ThemePack JSON: " + getExceptionInfo());
+            Logging::Error("Failed to parse ThemePack JSON: " + getExceptionInfo());
         }
     }
 
@@ -42,16 +46,22 @@ class ThemePack {
     }
     
     void UpdateWithFullData(Json::Value@ json) {
+        if (json is null) {
+            Logging::Warn("ThemePack::UpdateWithFullData called with null JSON");
+            return;
+        }
         try {
             themePackId = JsonUtils::SafeGetString(json, "theme_pack_id");
             accountId = JsonUtils::SafeGetString(json, "account_id");
             packName = JsonUtils::SafeGetString(json, "pack_name");
             createdAt = JsonUtils::SafeGetInt64(json, "created_at");
             isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            
             string newCoverId = JsonUtils::SafeGetString(json, "cover_id");
             if (newCoverId.Length > 0) {
                 coverId = newCoverId;
             }
+            
             signtypes.DeleteAll();
             if (json.HasKey("itemsBySize") && json.Get("itemsBySize").GetType() == Json::Type::Object) {
                 auto itemsBySizeObj = json.Get("itemsBySize");
@@ -64,6 +74,7 @@ class ThemePack {
                                 MediaItem@ item = MediaItem(sizeValue[j]);
                                 string itemSignType = item.signType;
                                 if (itemSignType.Length == 0) continue;
+                                
                                 array<MediaItem@>@ signTypeItems;
                                 if (!signtypes.Exists(itemSignType)) {
                                     array<MediaItem@> newArray;
@@ -72,8 +83,8 @@ class ThemePack {
                                 signtypes.Get(itemSignType, @signTypeItems);
                                 if (signTypeItems !is null) {
                                     signTypeItems.InsertLast(item);
+                                    startnew(ThumbnailService::RequestThumbnailForMediaItem, item);
                                 }
-                                startnew(ThumbnailService::RequestThumbnailForMediaItem, item);
                             } catch {
                                 Logging::Error("Failed to parse theme pack item in size group '" + sizeKeys[i] + "'[" + j + "]: " + getExceptionInfo());
                             }
@@ -82,12 +93,12 @@ class ThemePack {
                 }
             }
         } catch {
-            Logging::Error("Error updating ThemePack with full data: " + getExceptionInfo());
+            Logging::Error("Failed to update ThemePack with full data: " + getExceptionInfo());
         }
     }
     
     array<MediaItem@>@ GetSignTypeItems(const string &in signType) {
-        if (!signtypes.Exists(signType)) {
+        if (signType.Length == 0 || !signtypes.Exists(signType)) {
             return null;
         }
         array<MediaItem@>@ items;
