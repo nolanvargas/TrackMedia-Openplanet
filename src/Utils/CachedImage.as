@@ -6,81 +6,47 @@ class CachedImage {
     bool notFound = false;
     bool unsupportedFormat = false;
 
+    void fail(const string &in msg) {
+        error = true;
+        Logging::Warn(msg + " " + url);
+    }
+
+    void loadTexture(Net::HttpRequest@ req) {
+        req.Buffer().Seek(0);
+        @texture = UI::LoadTexture(req.Buffer());
+        if (texture is null || texture.GetSize().x == 0) {
+            @texture = null;
+            fail("CachedImage: Failed to load texture from");
+        }
+    }
+
     void DownloadFromURLAsync() {
         if (url.Length == 0) {
-            error = true;
-            Logging::Warn("CachedImage: Empty URL");
+            fail("CachedImage: Empty URL");
             return;
         }
-        
-        auto req = API::Get(url);
+
+        if (FileUtils::IsFileType(url, "webp") || FileUtils::IsFileType(url, "webm")) {
+            unsupportedFormat = true;
+            return;
+        }
+
+        Net::HttpRequest@ req = API::Get(url);
         if (req is null) {
-            error = true;
-            Logging::Warn("CachedImage: Failed to create request for " + url);
+            fail("CachedImage: Could not create request for");
             return;
         }
-        
-        while (!req.Finished()) {
-            yield();
-        }
-        
+
+        while (!req.Finished()) yield();
+
         responseCode = req.ResponseCode();
         if (responseCode != 200) {
-            notFound = (responseCode == 404);
-            error = true;
-            Logging::Warn("CachedImage: HTTP " + responseCode + " for " + url);
+            notFound = responseCode == 404;
+            fail("CachedImage: HTTP " + responseCode + " for");
             return;
         }
-        
-        string riffHeader = req.Buffer().ReadString(4);
-        if (riffHeader == "RIFF") {
-            // RIFF format: bytes 8-11 contain the format identifier
-            req.Buffer().Seek(8);
-            string formatId = req.Buffer().ReadString(4);
-            
-            if (formatId == "WEBP") {
-                req.Buffer().Seek(0);
-                auto webpReq = Net::HttpPost("https://map-monitor.xk.io/tmx/convert_webp", url);
-                while (!webpReq.Finished()) {
-                    yield();
-                }
-                
-                if (webpReq.ResponseCode() == 200) {
-                    @texture = UI::LoadTexture(webpReq.Buffer());
-                    if (texture is null || texture.GetSize().x == 0) {
-                        @texture = null;
-                        error = true;
-                        Logging::Warn("CachedImage: Failed to load WebP texture from " + url);
-                    }
-                } else {
-                    unsupportedFormat = true;
-                    error = true;
-                    Logging::Warn("CachedImage: WebP conversion failed (HTTP " + webpReq.ResponseCode() + ")");
-                }
-            } else if (formatId == "WEBM") {
-                unsupportedFormat = true;
-                error = true;
-                Logging::Warn("CachedImage: WebM format not supported");
-            } else {
-                // For other RIFF formats or malformed files, try loading directly
-                req.Buffer().Seek(0);
-                @texture = UI::LoadTexture(req.Buffer());
-                if (texture is null || texture.GetSize().x == 0) {
-                    @texture = null;
-                    unsupportedFormat = true;
-                    error = true;
-                    Logging::Warn("CachedImage: Unknown or unsupported RIFF format: " + formatId);
-                }
-            }
-        } else {
-            req.Buffer().Seek(0);
-            @texture = UI::LoadTexture(req.Buffer());
-            if (texture is null || texture.GetSize().x == 0) {
-                @texture = null;
-                error = true;
-                Logging::Warn("CachedImage: Failed to load texture from " + url);
-            }
-        }
+
+        loadTexture(req);
     }
 }
 
@@ -88,12 +54,10 @@ namespace Images {
     dictionary g_cachedImages;
 
     CachedImage@ FindExisting(const string &in url) {
-        if (url.Length == 0) {
-            return null;
-        }
-        CachedImage@ ret = null;
-        g_cachedImages.Get(url, @ret);
-        return ret;
+        if (url.Length == 0) return null;
+        CachedImage@ img;
+        g_cachedImages.Get(url, @img);
+        return img;
     }
 
     CachedImage@ CachedFromURL(const string &in url) {
@@ -101,16 +65,21 @@ namespace Images {
             Logging::Warn("Images::CachedFromURL called with empty URL");
             return null;
         }
-        
+
         auto existing = FindExisting(url);
-        if (existing !is null) {
-            return existing;
-        }
-        
-        auto ret = CachedImage();
-        ret.url = url;
-        g_cachedImages.Set(url, @ret);
-        startnew(CoroutineFunc(ret.DownloadFromURLAsync));
-        return ret;
+        if (existing !is null) return existing;
+
+        auto created = CachedImage();
+        created.url = url;
+        g_cachedImages.Set(url, @created);
+        startnew(CoroutineFunc(created.DownloadFromURLAsync));
+        return created;
+    }
+
+    bool IsUnsupportedType(CachedImage@ cached, const string &in ext) {
+        if (cached is null) return false;
+        if (!cached.unsupportedFormat) return false;
+        if (cached.texture !is null) return false;
+        return FileUtils::IsFileType(cached.url, ext);
     }
 }

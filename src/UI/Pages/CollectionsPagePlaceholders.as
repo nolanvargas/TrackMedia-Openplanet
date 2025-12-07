@@ -1,14 +1,14 @@
 namespace CollectionsPagePlaceholders {
     void DrawPlaceholderImage(float size) {
-        DrawPlaceholder(size, vec4(0.15f, 0.15f, 0.15f, 1.0f), "No image");
+        DrawPlaceholder(size, Colors::GALLERY_CELL_PLACEHOLDER_BG, "No image");
     }
     
     void DrawLoadingPlaceholder(float size) {
-        DrawPlaceholder(size, vec4(0.15f, 0.15f, 0.15f, 1.0f), "Loading...");
+        DrawPlaceholder(size, Colors::GALLERY_CELL_PLACEHOLDER_BG, "Loading...");
     }
     
     void DrawErrorPlaceholder(float size) {
-        DrawPlaceholder(size, vec4(0.2f, 0.1f, 0.1f, 1.0f), "Error");
+        DrawPlaceholder(size, Colors::ERROR_BG, "Error");
     }
     
     void DrawPlaceholder(float size, vec4 color, const string &in text) {

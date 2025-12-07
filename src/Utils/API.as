@@ -1,9 +1,6 @@
 namespace API {
     Net::HttpRequest@ Get(const string &in url) {
-        if (url.Length == 0) {
-            Logging::Error("API::Get called with empty URL");
-            return null;
-        }
+        if (url.Length == 0) throw("API::Get: url argument cannot be empty");
         auto ret = Net::HttpRequest();
         ret.Method = Net::HttpMethod::Get;
         ret.Url = url;
@@ -12,10 +9,6 @@ namespace API {
     }
 
     Json::Value GetAsync(const string &in url) {
-        if (url.Length == 0) {
-            Logging::Error("API::GetAsync called with empty URL");
-            return Json::Value();
-        }
         auto req = Get(url);
         if (req is null) {
             return Json::Value();

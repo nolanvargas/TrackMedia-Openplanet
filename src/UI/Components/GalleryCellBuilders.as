@@ -47,9 +47,23 @@ namespace GalleryCellBuilders {
                 data.imageState = ImageState::Type::Loading;
             }
         } else {
-            data.imageState = (item.cachedThumb !is null && item.cachedThumb.error) 
-                ? ImageState::Type::Error 
-                : ImageState::Type::Loading;
+            if (item.HasThumbRequest()) {
+                if (item.IsThumbUnsupportedType("webp")) {
+                    data.imageState = ImageState::Type::WebpUnsupported;
+                } else if (item.IsThumbUnsupportedType("webm")) {
+                    data.imageState = ImageState::Type::WebmUnsupported;
+                } else if (item.HasThumbError()) {
+                    data.imageState = ImageState::Type::Error;
+                } else {
+                    data.imageState = ImageState::Type::Loading;
+                }
+            } else {
+                // Lazy load: request thumbnail only when cell is being built
+                if (item.key.Length > 0) {
+                    startnew(ThumbnailService::RequestThumbnailForMediaItem, item);
+                }
+                data.imageState = ImageState::Type::Loading;
+            }
         }
     }
     
@@ -66,7 +80,7 @@ namespace GalleryCellBuilders {
         // Create new if not cached
         if (data is null) {
             @data = GalleryCellData();
-            data.backgroundColor = vec4(0.25f, 0.25f, 0.25f, 1.0f);
+            data.backgroundColor = Colors::GALLERY_CELL_BG;
             data.lockedAspectRatio = false;
             if (cacheKey.Length > 0) {
                 g_mediaItemCellCache.Set(cacheKey, @data);
@@ -99,19 +113,33 @@ namespace GalleryCellBuilders {
     
     void SetCollectionImageState(GalleryCellData@ data, Collection@ collection) {
         bool hasCoverKey = collection.coverKey.Length > 0;
-        bool hasCachedCover = collection.cachedCover !is null;
+        bool hasCoverRequest = collection.HasCoverRequest();
         bool isCoverLoaded = collection.IsCoverLoaded();
         
-        if (isCoverLoaded && hasCachedCover) {
+        if (isCoverLoaded && hasCoverRequest) {
             UI::Texture@ texture = collection.GetCoverTexture();
             if (texture !is null) {
                 @data.imageTexture = texture;
                 data.imageState = ImageState::Type::Loaded;
+                // Extract actual image dimensions from texture
+                vec2 texSize = texture.GetSize();
+                if (texSize.x > 0 && texSize.y > 0) {
+                    data.imageWidth = int(texSize.x);
+                    data.imageHeight = int(texSize.y);
+                }
             } else {
                 data.imageState = ImageState::Type::None;
             }
-        } else if (hasCachedCover) {
-            data.imageState = collection.cachedCover.error ? ImageState::Type::Error : ImageState::Type::Loading;
+        } else if (hasCoverRequest) {
+            if (collection.IsCoverUnsupportedType("webp")) {
+                data.imageState = ImageState::Type::WebpUnsupported;
+            } else if (collection.IsCoverUnsupportedType("webm")) {
+                data.imageState = ImageState::Type::WebmUnsupported;
+            } else if (collection.HasCoverError()) {
+                data.imageState = ImageState::Type::Error;
+            } else {
+                data.imageState = ImageState::Type::Loading;
+            }
         } else if (!hasCoverKey) {
             data.imageState = ImageState::Type::None;
         } else {
@@ -132,7 +160,7 @@ namespace GalleryCellBuilders {
         // Create new if not cached
         if (data is null) {
             @data = GalleryCellData();
-            data.backgroundColor = vec4(0.25f, 0.25f, 0.25f, 1.0f);
+            data.backgroundColor = Colors::GALLERY_CELL_BG;
             data.lockedAspectRatio = true;
             data.imageWidth = 1;
             data.imageHeight = 1;
@@ -160,19 +188,33 @@ namespace GalleryCellBuilders {
     
     void SetThemePackImageState(GalleryCellData@ data, ThemePack@ themePack) {
         bool hasCoverId = themePack.coverId.Length > 0;
-        bool hasCachedCover = themePack.cachedCover !is null;
+        bool hasCoverRequest = themePack.HasCoverRequest();
         bool isCoverLoaded = themePack.IsCoverLoaded();
         
-        if (isCoverLoaded && hasCachedCover) {
+        if (isCoverLoaded && hasCoverRequest) {
             UI::Texture@ texture = themePack.GetCoverTexture();
             if (texture !is null) {
                 @data.imageTexture = texture;
                 data.imageState = ImageState::Type::Loaded;
+                // Extract actual image dimensions from texture
+                vec2 texSize = texture.GetSize();
+                if (texSize.x > 0 && texSize.y > 0) {
+                    data.imageWidth = int(texSize.x);
+                    data.imageHeight = int(texSize.y);
+                }
             } else {
                 data.imageState = ImageState::Type::None;
             }
-        } else if (hasCachedCover) {
-            data.imageState = themePack.cachedCover.error ? ImageState::Type::Error : ImageState::Type::Loading;
+        } else if (hasCoverRequest) {
+            if (themePack.IsCoverUnsupportedType("webp")) {
+                data.imageState = ImageState::Type::WebpUnsupported;
+            } else if (themePack.IsCoverUnsupportedType("webm")) {
+                data.imageState = ImageState::Type::WebmUnsupported;
+            } else if (themePack.HasCoverError()) {
+                data.imageState = ImageState::Type::Error;
+            } else {
+                data.imageState = ImageState::Type::Loading;
+            }
         } else if (!hasCoverId) {
             data.imageState = ImageState::Type::None;
         } else {
@@ -193,7 +235,7 @@ namespace GalleryCellBuilders {
         // Create new if not cached
         if (data is null) {
             @data = GalleryCellData();
-            data.backgroundColor = vec4(0.25f, 0.25f, 0.25f, 1.0f);
+            data.backgroundColor = Colors::GALLERY_CELL_BG;
             data.lockedAspectRatio = true;
             data.imageWidth = 1;
             data.imageHeight = 1;

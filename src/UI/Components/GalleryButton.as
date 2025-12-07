@@ -18,11 +18,11 @@ class GalleryButton {
     }
     
     vec4 GetBackgroundColor(MediaItem@ item, uint index) {
-        return vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return Colors::GALLERY_BUTTON_BG;
     }
     
     vec4 GetTextColor(MediaItem@ item, uint index) {
-        return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return Colors::SHADE_WHITE;
     }
     
     float GetFontSize(MediaItem@ item, uint index) {
@@ -34,7 +34,7 @@ class GalleryButton {
     }
     
     vec4 GetIconColor(MediaItem@ item, uint index) {
-        return vec4(0, 0, 0, 0);
+        return Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(MediaItem@ item, uint index) {

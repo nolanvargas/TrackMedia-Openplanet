@@ -5,12 +5,12 @@ class CopyGalleryButton : GalleryButton {
     
     bool OnClick(MediaItem@ item, uint index) override {
         if (item is null || item.key.Length == 0) {
-            UI::ShowNotification(Icons::Kenney::ButtonTimes + " TrackMedia", "No URL available to copy.", vec4(0.8f, 0.2f, 0.2f, 1.0f), 3000);
+            UI::ShowNotification(Icons::Kenney::ButtonTimes + " TrackMedia", "No URL available to copy.", Colors::ERROR, 3000);
             return false;
         }
         
         IO::SetClipboard("https://cdn.trackmedia.io/" + item.key);
-        UI::ShowNotification("✓ TrackMedia", "URL copied to clipboard!", vec4(0.2f, 0.8f, 0.2f, 1.0f), 2000);
+        UI::ShowNotification("✓ TrackMedia", "URL copied to clipboard!", Colors::SUCCESS, 2000);
         return true;
     }
     
@@ -27,11 +27,11 @@ class CopyGalleryButton : GalleryButton {
     }
     
     vec4 GetBackgroundColor(MediaItem@ item, uint index) override {
-        return vec4(0.3f, 0.3f, 0.3f, 0.6f);
+        return Colors::GALLERY_BUTTON_BG_SEMI;
     }
     
     vec4 GetTextColor(MediaItem@ item, uint index) override {
-        return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return Colors::SHADE_WHITE;
     }
     
     float GetFontSize(MediaItem@ item, uint index) override {
@@ -43,7 +43,7 @@ class CopyGalleryButton : GalleryButton {
     }
     
     vec4 GetIconColor(MediaItem@ item, uint index) override {
-        return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return Colors::SHADE_WHITE;
     }
     
     bool IsIconTopRight(MediaItem@ item, uint index) override {

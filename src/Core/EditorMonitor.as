@@ -30,10 +30,6 @@ namespace EditorMonitor {
         }
         
         State::showUI = true;
-        if (!State::hasRequestedThumbs && !State::isRequestingThumbs) {
-            State::isRequestingThumbs = true;
-            startnew(ApiService::RequestThumbs);
-        }
         
         HandleSelection(editor);
     }

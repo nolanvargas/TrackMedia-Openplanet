@@ -16,12 +16,14 @@ namespace ImageState {
         None,
         Loading,
         Error,
-        Loaded
+        Loaded,
+        WebpUnsupported,
+        WebmUnsupported
     }
 }
 
 class GalleryCellData {
-    vec4 backgroundColor = vec4(0.25f, 0.25f, 0.25f, 1.0f);
+    vec4 backgroundColor = Colors::GALLERY_CELL_BG;
     UI::Texture@ imageTexture = null;
     ImageState::Type imageState = ImageState::Type::None;
     int imageWidth = 0;

@@ -41,12 +41,12 @@ class MediaItemButtonAdapter : ICellButton {
     
     vec4 GetBackgroundColor(uint index) override {
         MediaItem@ targetItem = GetItem(index);
-        return (button !is null && targetItem !is null) ? button.GetBackgroundColor(targetItem, index) : vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return (button !is null && targetItem !is null) ? button.GetBackgroundColor(targetItem, index) : Colors::GALLERY_BUTTON_BG;
     }
     
     vec4 GetTextColor(uint index) override {
         MediaItem@ targetItem = GetItem(index);
-        return (button !is null && targetItem !is null) ? button.GetTextColor(targetItem, index) : vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return (button !is null && targetItem !is null) ? button.GetTextColor(targetItem, index) : Colors::SHADE_WHITE;
     }
     
     float GetFontSize(uint index) override {
@@ -61,7 +61,7 @@ class MediaItemButtonAdapter : ICellButton {
     
     vec4 GetIconColor(uint index) override {
         MediaItem@ targetItem = GetItem(index);
-        return (button !is null && targetItem !is null) ? button.GetIconColor(targetItem, index) : vec4(0, 0, 0, 0);
+        return (button !is null && targetItem !is null) ? button.GetIconColor(targetItem, index) : Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(uint index) override {
@@ -113,12 +113,12 @@ class CollectionButtonAdapter : ICellButton {
     
     vec4 GetBackgroundColor(uint index) override {
         Collection@ targetCollection = GetCollection(index);
-        return (button !is null && targetCollection !is null) ? button.GetBackgroundColor(targetCollection, index) : vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return (button !is null && targetCollection !is null) ? button.GetBackgroundColor(targetCollection, index) : Colors::GALLERY_BUTTON_BG;
     }
     
     vec4 GetTextColor(uint index) override {
         Collection@ targetCollection = GetCollection(index);
-        return (button !is null && targetCollection !is null) ? button.GetTextColor(targetCollection, index) : vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return (button !is null && targetCollection !is null) ? button.GetTextColor(targetCollection, index) : Colors::SHADE_WHITE;
     }
     
     float GetFontSize(uint index) override {
@@ -133,7 +133,7 @@ class CollectionButtonAdapter : ICellButton {
     
     vec4 GetIconColor(uint index) override {
         Collection@ targetCollection = GetCollection(index);
-        return (button !is null && targetCollection !is null) ? button.GetIconColor(targetCollection, index) : vec4(0, 0, 0, 0);
+        return (button !is null && targetCollection !is null) ? button.GetIconColor(targetCollection, index) : Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(uint index) override {
@@ -185,12 +185,12 @@ class ThemePackButtonAdapter : ICellButton {
     
     vec4 GetBackgroundColor(uint index) override {
         ThemePack@ targetPack = GetThemePack(index);
-        return (button !is null && targetPack !is null) ? button.GetBackgroundColor(targetPack, index) : vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return (button !is null && targetPack !is null) ? button.GetBackgroundColor(targetPack, index) : Colors::GALLERY_BUTTON_BG;
     }
     
     vec4 GetTextColor(uint index) override {
         ThemePack@ targetPack = GetThemePack(index);
-        return (button !is null && targetPack !is null) ? button.GetTextColor(targetPack, index) : vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return (button !is null && targetPack !is null) ? button.GetTextColor(targetPack, index) : Colors::SHADE_WHITE;
     }
     
     float GetFontSize(uint index) override {
@@ -205,7 +205,7 @@ class ThemePackButtonAdapter : ICellButton {
     
     vec4 GetIconColor(uint index) override {
         ThemePack@ targetPack = GetThemePack(index);
-        return (button !is null && targetPack !is null) ? button.GetIconColor(targetPack, index) : vec4(0, 0, 0, 0);
+        return (button !is null && targetPack !is null) ? button.GetIconColor(targetPack, index) : Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(uint index) override {

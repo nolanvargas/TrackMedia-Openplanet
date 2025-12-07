@@ -1,6 +1,4 @@
 class CollectionGalleryButton {
-    float width = 100.0f;
-    
     bool OnClick(Collection@ collection, uint index) {
         if (collection is null) return false;
         CollectionsPageTabManager::OpenCollectionTab(collection);
@@ -16,15 +14,15 @@ class CollectionGalleryButton {
     }
     
     float GetWidth(Collection@ collection, uint index) {
-        return width;
+        return -1.0f; // Sentinel value: use full content width
     }
     
     vec4 GetBackgroundColor(Collection@ collection, uint index) {
-        return vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return Colors::GALLERY_COLLECTION_BUTTON_BG;
     }
     
     vec4 GetTextColor(Collection@ collection, uint index) {
-        return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return Colors::SHADE_BLACK;
     }
     
     float GetFontSize(Collection@ collection, uint index) {
@@ -36,7 +34,7 @@ class CollectionGalleryButton {
     }
     
     vec4 GetIconColor(Collection@ collection, uint index) {
-        return vec4(0, 0, 0, 0);
+        return Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(Collection@ collection, uint index) {

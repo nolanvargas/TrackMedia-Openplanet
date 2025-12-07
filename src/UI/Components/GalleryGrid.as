@@ -14,7 +14,7 @@ namespace GalleryGrid {
         if (cellDataArray is null || cellDataArray.Length == 0) return;
         
         float availableWidth = UI::GetContentRegionAvail().x;
-        float maxColumnWidth = 300.0f;
+        float maxColumnWidth = 250.0f;
         float calculatedColumnWidth = (availableWidth - (config.columnSpacing * (config.columns - 1))) / config.columns;
         float columnWidth = Math::Min(calculatedColumnWidth, maxColumnWidth);
         float totalGalleryWidth = (columnWidth * config.columns) + (config.columnSpacing * (config.columns - 1));

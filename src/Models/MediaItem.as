@@ -73,4 +73,16 @@ class MediaItem {
     bool IsThumbLoaded() {
         return cachedThumb !is null && cachedThumb.texture !is null;
     }
+
+    bool HasThumbError() {
+        return cachedThumb !is null && cachedThumb.error;
+    }
+
+    bool IsThumbUnsupportedType(const string &in ext) {
+        return Images::IsUnsupportedType(cachedThumb, ext);
+    }
+
+    bool HasThumbRequest() {
+        return cachedThumb !is null;
+    }
 }

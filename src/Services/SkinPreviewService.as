@@ -29,6 +29,18 @@ namespace SkinPreviewService {
         return Images::CachedFromURL(cdnUrl);
     }
     
+    bool IsPreviewLoaded(CachedImage@ cached) {
+        return cached !is null && cached.texture !is null;
+    }
+    
+    UI::Texture@ GetPreviewTexture(CachedImage@ cached) {
+        return cached !is null ? cached.texture : null;
+    }
+    
+    bool IsPreviewUnsupportedWebm(CachedImage@ cached) {
+        return cached !is null && Images::IsUnsupportedType(cached, "webm");
+    }
+    
     void ClearCache() {
         textureCache.DeleteAll();
     }

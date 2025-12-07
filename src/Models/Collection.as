@@ -40,6 +40,18 @@ class Collection {
         return cachedCover !is null && cachedCover.texture !is null;
     }
 
+    bool HasCoverError() {
+        return cachedCover !is null && cachedCover.error;
+    }
+
+    bool IsCoverUnsupportedType(const string &in ext) {
+        return Images::IsUnsupportedType(cachedCover, ext);
+    }
+
+    bool HasCoverRequest() {
+        return cachedCover !is null;
+    }
+
     string GetCoverUrl() {
         if (coverKey.Length == 0) return "";
         return "https://cdn.trackmedia.io/" + coverKey;

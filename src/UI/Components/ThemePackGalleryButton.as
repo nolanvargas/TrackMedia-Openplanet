@@ -1,6 +1,4 @@
 class ThemePackGalleryButton {
-    float width = 100.0f;
-    
     bool OnClick(ThemePack@ themePack, uint index) {
         if (themePack is null) return false;
         ThemePacksPageTabManager::OpenThemePackTab(themePack);
@@ -16,15 +14,15 @@ class ThemePackGalleryButton {
     }
     
     float GetWidth(ThemePack@ themePack, uint index) {
-        return width;
+        return -1.0f; // Sentinel value: use full content width
     }
     
     vec4 GetBackgroundColor(ThemePack@ themePack, uint index) {
-        return vec4(0.2f, 0.5f, 0.8f, 1.0f);
+        return Colors::GALLERY_COLLECTION_BUTTON_BG;
     }
     
     vec4 GetTextColor(ThemePack@ themePack, uint index) {
-        return vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        return Colors::SHADE_BLACK;
     }
     
     float GetFontSize(ThemePack@ themePack, uint index) {
@@ -36,7 +34,7 @@ class ThemePackGalleryButton {
     }
     
     vec4 GetIconColor(ThemePack@ themePack, uint index) {
-        return vec4(0, 0, 0, 0);
+        return Colors::TRANSPARENT;
     }
     
     bool IsIconTopRight(ThemePack@ themePack, uint index) {

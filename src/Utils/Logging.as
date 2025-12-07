@@ -6,7 +6,7 @@ enum LogLevel {
     Trace
 }
 
-LogLevel Setting_LogLevel = LogLevel::Info;
+LogLevel Setting_LogLevel = LogLevel::Trace;
 
 namespace Logging {
     const string PLUGIN_NAME = "TrackMedia";

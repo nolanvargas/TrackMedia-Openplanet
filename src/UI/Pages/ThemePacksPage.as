@@ -1,58 +1,39 @@
 namespace ThemePacksPage {
     void Render() {
-        ThemePacksPageTabManager::EnsureThemePacksTabExists();
-        
         if (!State::hasRequestedThemePacks && !State::isRequestingThemePacks) {
             Logging::Info("ThemePacksPage: Starting theme packs request");
             State::isRequestingThemePacks = true;
-            startnew(ApiService::RequestThemePacks);
+            startnew(ThemePacksApiService::RequestThemePacks);
         }
 
         ThemePacksPageTabManager::RenderTabBar();
         UI::Separator();
         
-        if (State::activeTabIndex >= 0 && State::activeTabIndex < int(State::openTabs.Length)) {
-            Tab@ activeTab = State::openTabs[State::activeTabIndex];
-            if (activeTab !is null) {
-                if (State::activeTabIndex == 0) {
-                    RenderThemePacksGrid();
-                    return;
-                } else {
-                    ThemePackTab@ themePackTab = cast<ThemePackTab>(activeTab);
-                    if (themePackTab !is null) {
-                        activeTab.PushTabStyle(State::activeTabIndex);
-                        activeTab.Render();
-                        activeTab.PopTabStyleWithText();  // 6 colors including text color (needed for last 2 shades with black text)
-                    } else {
-                        activeTab.PushTabStyle();
-                        activeTab.Render();
-                        activeTab.PopTabStyle();
-                    }
-                    return;
-                }
+        if (State::themePacksActiveTabIndex >= 0 && State::themePacksActiveTabIndex < int(State::themePacksTabs.Length)) {
+            Tab@ activeTab = State::themePacksTabs[State::themePacksActiveTabIndex];
+            if (State::themePacksActiveTabIndex == 0) {
+                RenderGrid();
+                return;
+            } else {
+                activeTab.PushTabStyle(State::themePacksActiveTabIndex);
+                activeTab.Render();
+                activeTab.PopTabStyleWithText();
+                return;
             }
         }
         
-        RenderThemePacksGrid();
+        RenderGrid();
     }
     
-    void RenderThemePacksGrid() {
-        if (State::themePacks.Length == 0) {
-            if (State::isRequestingThemePacks) {
-                UI::Text("Loading theme packs...");
-            } else {
-                UI::Text("No theme packs found.");
-                UI::Text("Status: " + State::themePacksRequestStatus);
-                if (UI::Button("Refresh")) {
-                    State::hasRequestedThemePacks = false;
-                    State::isRequestingThemePacks = true;
-                    startnew(ApiService::RequestThemePacks);
-                }
+    void RenderGrid() {
+        if (!PageHelpers::RenderGrid(State::themePacks.Length, State::isRequestingThemePacks, State::themePacksRequestStatus, "Loading theme packs...", "No theme packs found.")) {
+            if (UI::Button("Refresh")) {
+                State::hasRequestedThemePacks = false;
+                State::isRequestingThemePacks = true;
+                startnew(ThemePacksApiService::RequestThemePacks);
             }
             return;
         }
-
-        // Use Gallery component to render theme packs
         Gallery::Render(State::themePacks);
     }
 }

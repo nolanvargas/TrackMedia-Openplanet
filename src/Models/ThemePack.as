@@ -8,6 +8,7 @@ class ThemePack {
     bool isUnlisted;
     CachedImage@ cachedCover = null;
     dictionary signtypes;
+    uint m_totalItems = 0;
 
     ThemePack() {}
     ThemePack(Json::Value@ json) {
@@ -40,6 +41,18 @@ class ThemePack {
         return cachedCover !is null && cachedCover.texture !is null;
     }
 
+    bool HasCoverError() {
+        return cachedCover !is null && cachedCover.error;
+    }
+
+    bool IsCoverUnsupportedType(const string &in ext) {
+        return Images::IsUnsupportedType(cachedCover, ext);
+    }
+
+    bool HasCoverRequest() {
+        return cachedCover !is null;
+    }
+
     string GetCoverUrl() {
         if (coverId.Length == 0) return "";
         return "https://cdn.trackmedia.io/" + coverId;
@@ -63,6 +76,7 @@ class ThemePack {
             }
             
             signtypes.DeleteAll();
+            m_totalItems = 0;
             if (json.HasKey("itemsBySize") && json.Get("itemsBySize").GetType() == Json::Type::Object) {
                 auto itemsBySizeObj = json.Get("itemsBySize");
                 array<string> sizeKeys = itemsBySizeObj.GetKeys();
@@ -83,6 +97,7 @@ class ThemePack {
                                 signtypes.Get(itemSignType, @signTypeItems);
                                 if (signTypeItems !is null) {
                                     signTypeItems.InsertLast(item);
+                                    m_totalItems++;
                                     startnew(ThumbnailService::RequestThumbnailForMediaItem, item);
                                 }
                             } catch {
@@ -107,6 +122,21 @@ class ThemePack {
     }
     
     array<string> GetSignTypeKeys() {
-        return signtypes.GetKeys();
+        array<string> keys = signtypes.GetKeys();
+        // Sort sign type keys alphabetically
+        for (uint i = 0; i < keys.Length; i++) {
+            for (uint j = i + 1; j < keys.Length; j++) {
+                if (keys[i] > keys[j]) {
+                    string temp = keys[i];
+                    keys[i] = keys[j];
+                    keys[j] = temp;
+                }
+            }
+        }
+        return keys;
+    }
+    
+    uint GetTotalItems() {
+        return m_totalItems;
     }
 }

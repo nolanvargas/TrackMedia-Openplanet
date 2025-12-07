@@ -1,46 +1,46 @@
 namespace JsonUtils {
-    string SafeGetString(Json::Value@ json, const string &in key, const string &in defaultValue = "") {
-        if (json is null) return defaultValue;
-        if (!json.HasKey(key)) return defaultValue;
+
+    bool has(Json::Value@ json, const string &in key) {
+        return json !is null && json.HasKey(key);
+    }
+
+    string SafeGetString(Json::Value@ json, const string &in key, const string &in def = "") {
+        if (!has(json, key)) return def;
+        Json::Value val = json[key];
+
         try {
-            auto value = json.Get(key);
-            if (value.GetType() == Json::Type::Null) return defaultValue;
-            if (value.GetType() == Json::Type::String) return string(value);
-            return tostring(value);
+            if (val.GetType() == Json::Type::String) return string(val);
+            if (val.GetType() == Json::Type::Null) return def;
+            return tostring(val);
         } catch {
-            return defaultValue;
+            return def;
         }
     }
 
-    int64 SafeGetInt64(Json::Value@ json, const string &in key, int64 defaultValue = 0) {
-        if (json is null) return defaultValue;
-        if (!json.HasKey(key)) return defaultValue;
+    int64 SafeGetInt64(Json::Value@ json, const string &in key, int64 def = 0) {
+        if (!has(json, key)) return def;
+        Json::Value val = json[key];
+
         try {
-            auto value = json.Get(key);
-            if (value.GetType() == Json::Type::Null) return defaultValue;
-            if (value.GetType() == Json::Type::Number) return int64(value);
-            if (value.GetType() == Json::Type::String) {
-                string str = value;
-                if (str.Length > 0) {
-                    return Text::ParseInt(str);
-                }
-            }
+            if (val.GetType() == Json::Type::Number) return int64(val);
+            if (val.GetType() == Json::Type::String) return Text::ParseInt(string(val));
         } catch {}
-        return defaultValue;
+
+        return def;
     }
 
-    bool SafeGetBool(Json::Value@ json, const string &in key, bool defaultValue = false) {
-        if (json is null) return defaultValue;
-        if (!json.HasKey(key)) return defaultValue;
+    bool SafeGetBool(Json::Value@ json, const string &in key, bool def = false) {
+        if (!has(json, key)) return def;
+        Json::Value val = json[key];
+
         try {
-            auto value = json.Get(key);
-            if (value.GetType() == Json::Type::Null) return defaultValue;
-            if (value.GetType() == Json::Type::Number) return int64(value) != 0;
-            if (value.GetType() == Json::Type::String) {
-                string str = string(value);
-                return str == "true" || str == "1" || str == "True" || str == "TRUE";
+            if (val.GetType() == Json::Type::Number) return int64(val) != 0;
+            if (val.GetType() == Json::Type::String) {
+                string s = string(val);
+                return s == "true" || s == "1" || s == "True" || s == "TRUE";
             }
         } catch {}
-        return defaultValue;
+
+        return def;
     }
 }

@@ -26,9 +26,6 @@ namespace GalleryCell {
     }
     
     float CalculateImageHeight(GalleryCellData@ data, float contentWidth, float defaultImageWidth) {
-        if (data.lockedAspectRatio) {
-            return contentWidth;
-        }
         // Prefer texture's actual size if available, as it may differ from stored dimensions
         if (data.imageState == ImageState::Type::Loaded && data.imageTexture !is null) {
             vec2 texSize = data.imageTexture.GetSize();
@@ -39,6 +36,10 @@ namespace GalleryCell {
         // Fall back to stored dimensions
         if (data.imageWidth > 0 && data.imageHeight > 0) {
             return (float(data.imageHeight) / float(data.imageWidth)) * contentWidth;
+        }
+        // If lockedAspectRatio is true but no dimensions available, use square
+        if (data.lockedAspectRatio) {
+            return contentWidth;
         }
         return defaultImageWidth;
     }
@@ -103,8 +104,18 @@ namespace GalleryCell {
             }
             
             float buttonWidth = button.GetWidth(index);
+            bool isFullWidthButton = (buttonWidth < 0.0f);
             if (buttonWidth == 100.0f) {
                 buttonWidth = config.buttonHeight;
+            } else if (isFullWidthButton) {
+                // Sentinel value: use full content width (minus spacing for multiple buttons)
+                if (buttons.Length == 1) {
+                    buttonWidth = contentWidth;
+                } else {
+                    // Multiple buttons: calculate available width accounting for spacing
+                    float totalSpacing = config.padding * float(buttons.Length - 1);
+                    buttonWidth = (contentWidth - totalSpacing) / float(buttons.Length);
+                }
             }
             
             vec4 bgColor = button.GetBackgroundColor(index);
@@ -112,12 +123,8 @@ namespace GalleryCell {
             vec4 iconColor = button.GetIconColor(index);
             bool useIconColor = (iconColor.w > 0.0f);
             
-            vec4 hoverColor = (bgColor.w > 0.5f) 
-                ? vec4(bgColor.x * 1.3f, bgColor.y * 1.3f, bgColor.z * 1.3f, Math::Min(bgColor.w * 1.2f, 1.0f))
-                : vec4(bgColor.x + 0.2f, bgColor.y + 0.2f, bgColor.z + 0.2f, Math::Min(bgColor.w + 0.2f, 1.0f));
-            
             UI::PushStyleColor(UI::Col::Button, bgColor);
-            UI::PushStyleColor(UI::Col::ButtonHovered, hoverColor);
+            UI::PushStyleColor(UI::Col::ButtonHovered, bgColor); // Same color as non-hovered
             UI::PushStyleColor(UI::Col::ButtonActive, vec4(bgColor.x * 0.9f, bgColor.y * 0.9f, bgColor.z * 0.9f, bgColor.w));
             UI::PushStyleColor(UI::Col::Text, useIconColor ? iconColor : textColor);
             UI::PushStyleVar(UI::StyleVar::FrameRounding, 4.0f);
@@ -134,14 +141,14 @@ namespace GalleryCell {
             
             string label = button.GetLabel(index);
             string buttonId = (label.Length > 0) 
-                ? (label + "##btn")
-                : "##btn";
+                ? (label + "##btn" + i)
+                : ("##btn" + i);
             
             if (UI::Button(buttonId, vec2(buttonWidth, config.buttonHeight))) {
                 button.OnClick(index);
             }
             
-            if (button.IsIconTopRight(index) && UI::IsItemHovered()) {
+            if (isFullWidthButton && UI::IsItemHovered()) {
                 UI::SetMouseCursor(UI::MouseCursor::Hand);
             }
             
@@ -161,7 +168,7 @@ namespace GalleryCell {
             }
             
             UI::PopStyleVar();
-            UI::PopStyleColor(4);
+            UI::PopStyleColor(4); // Button, ButtonHovered, ButtonActive, Text
             
             UI::PopID();
         }
@@ -180,7 +187,7 @@ namespace GalleryCell {
     }
     
     void RenderPlaceholder(vec2 size, ImageState::Type state) {
-        UI::PushStyleColor(UI::Col::ChildBg, vec4(0.15f, 0.15f, 0.15f, 1.0f));
+            UI::PushStyleColor(UI::Col::ChildBg, Colors::GALLERY_CELL_PLACEHOLDER_BG);
         UI::Dummy(size);
         vec2 dummyPos = UI::GetCursorPos();
         UI::SetCursorPos(dummyPos - vec2(0, size.y));
@@ -190,12 +197,18 @@ namespace GalleryCell {
             placeholderText = "Loading...";
         } else if (state == ImageState::Type::Error) {
             placeholderText = "Error";
-            UI::PushStyleColor(UI::Col::Text, vec4(0.8f, 0.2f, 0.2f, 1.0f));
+            UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
+        } else if (state == ImageState::Type::WebpUnsupported) {
+            placeholderText = "WebP support coming soon";
+            UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
+        } else if (state == ImageState::Type::WebmUnsupported) {
+            placeholderText = "WEBM unsupported";
+            UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
         }
         
         UI::Text(placeholderText);
         
-        if (state == ImageState::Type::Error) {
+        if (state == ImageState::Type::Error || state == ImageState::Type::WebpUnsupported || state == ImageState::Type::WebmUnsupported) {
             UI::PopStyleColor();
         }
         
