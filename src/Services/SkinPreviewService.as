@@ -1,5 +1,4 @@
 namespace SkinPreviewService {
-    dictionary textureCache;
     UI::Texture@ placeholderTexture = null;
     
     string GetTempDir() {
@@ -8,20 +7,6 @@ namespace SkinPreviewService {
             IO::CreateFolder(tempDir, true);
         }
         return tempDir;
-    }
-    
-    UI::Texture@ GetCachedTexture(const string &in cdnUrl) {
-        if (textureCache.Exists(cdnUrl)) {
-            UI::Texture@ cached = cast<UI::Texture@>(textureCache[cdnUrl]);
-            if (cached !is null) {
-                return cached;
-            }
-        }
-        return null;
-    }
-    
-    void CacheTexture(const string &in cdnUrl, UI::Texture@ texture) {
-        @textureCache[cdnUrl] = texture;
     }
     
     CachedImage@ LoadSkinPreview(const string &in cdnUrl) {
@@ -41,10 +26,7 @@ namespace SkinPreviewService {
         return cached !is null && Images::IsUnsupportedType(cached, "webm");
     }
     
-    void ClearCache() {
-        textureCache.DeleteAll();
-    }
-    
+    // Get rid of this
     UI::Texture@ GetPlaceholderTexture() {
         if (placeholderTexture !is null) {
             return placeholderTexture;
@@ -59,16 +41,15 @@ namespace SkinPreviewService {
             try {
                 UI::Texture@ texture = UI::LoadTexture(placeholderPaths[i]);
                 if (texture !is null) {
+                    print("Loaded placeholder texture: " + placeholderPaths[i]);
                     @placeholderTexture = texture;
                     return texture;
                 }
-            } catch {}
+            } catch {
+                Logging::Debug("Failed to load placeholder texture: " + placeholderPaths[i]);
+            }
         }
         return null;
-    }
-    
-    CachedImage@ LoadSkinPreviewWithPlaceholder(const string &in cdnUrl) {
-        return LoadSkinPreview(cdnUrl);
     }
 }
 

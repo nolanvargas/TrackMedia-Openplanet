@@ -16,11 +16,10 @@ namespace EditorMonitor {
             return;
         }
         
-        // Cache PlaceMode string to avoid per-frame allocation
         string placeModeStr = "";
-        try {
-            placeModeStr = tostring(mapType.PlaceMode);
-        } catch {}
+        try { placeModeStr = tostring(mapType.PlaceMode); } catch {
+            Logging::Debug("Failed to get place mode");
+        }
         
         if (placeModeStr != "Skin") {
             State::showUI = false;
@@ -35,11 +34,6 @@ namespace EditorMonitor {
     }
 
     void HandleSelection(CGameCtnEditorFree@ editor) {
-        if (editor is null) {
-            ClearSelection();
-            return;
-        }
-        
         auto@ pickedBlock = cast<CGameCtnBlock>(editor.PickedBlock);
         if (pickedBlock !is null) {
             HandleBlockSelection(pickedBlock, editor);

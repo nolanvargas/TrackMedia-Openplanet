@@ -1,4 +1,4 @@
-namespace SectionResizeButton {
+namespace SectionResizeSlider {
     // Layout constants
     const float BUTTON_HEIGHT = 7.0;
     const float BUTTON_WIDTH = 75.0;

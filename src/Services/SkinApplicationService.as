@@ -1,11 +1,4 @@
 namespace SkinApplicationService {
-    bool ApplySkinFromMediaItemBg(MediaItem@ mediaItem) {
-        return ApplySkinFromMediaItem(mediaItem, "bg");
-    }
-    
-    bool ApplySkinFromMediaItemFg(MediaItem@ mediaItem) {
-        return ApplySkinFromMediaItem(mediaItem, "fg");
-    }
     
     bool ApplySkinFromMediaItem(MediaItem@ mediaItem, const string &in layer = "bg") {
         if (mediaItem is null || mediaItem.key.Length == 0) {
@@ -31,32 +24,38 @@ namespace SkinApplicationService {
         newFg = (layer == "fg") ? skinUrlW : (layer == "all" ? wstring("") : currFg);
     }
 
-    // Helper: Get current block skins with error handling
     void GetCurrentBlockSkins(CGameEditorPluginMap@ pluginMap, CGameCtnBlock@ block, wstring &out currBg, wstring &out currFg) {
         currBg = "";
         currFg = "";
         
         try {
             currBg = pluginMap.GetBlockSkinBg(block);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to get block background skin");
+        }
         
         try {
             currFg = pluginMap.GetBlockSkinFg(block);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to get block foreground skin");
+        }
     }
 
-    // Helper: Get current item skins with error handling
     void GetCurrentItemSkins(CGameEditorPluginMap@ pluginMap, CGameCtnEditorScriptAnchoredObject@ item, wstring &out currBg, wstring &out currFg) {
         currBg = "";
         currFg = "";
         
         try {
             currBg = pluginMap.GetItemSkinBg(item);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to get item background skin");
+        }
         
         try {
             currFg = pluginMap.GetItemSkinFg(item);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to get item foreground skin");
+        }
     }
 
     bool ApplyBlockSkin(CGameCtnBlock@ block, const string &in skinUrl, const string &in layer) {
@@ -64,7 +63,7 @@ namespace SkinApplicationService {
             return false;
         }
         
-        auto pluginMap = GetPluginMap();
+        auto pluginMap = EditorUtils::GetEditorPluginMap();
         if (pluginMap is null) {
             Logging::Error("Cannot apply block skin: editor plugin map not available", true);
             return false;
@@ -80,6 +79,7 @@ namespace SkinApplicationService {
         try {
             pluginMap.SetBlockSkins(block, newBg, newFg);
             SkinPreviewRenderer::SetAppliedSkin(skinUrl);
+            // Look into this
             SkinManager::RefreshBlockSkinLists();
             return true;
         } catch {
@@ -93,7 +93,7 @@ namespace SkinApplicationService {
             return false;
         }
         
-        auto pluginMap = GetPluginMap();
+        auto pluginMap = EditorUtils::GetEditorPluginMap();
         if (pluginMap is null) {
             Logging::Error("Cannot apply item skin: editor plugin map not available", true);
             return false;
@@ -117,12 +117,5 @@ namespace SkinApplicationService {
         }
     }
 
-    CGameEditorPluginMap@ GetPluginMap() {
-        auto editor = cast<CGameCtnEditorFree>(GetApp().Editor);
-        if (editor is null) {
-            return null;
-        }
-        return cast<CGameEditorPluginMap>(editor.PluginMapType);
-    }
 }
 

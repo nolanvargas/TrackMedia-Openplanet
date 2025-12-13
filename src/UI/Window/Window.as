@@ -7,6 +7,12 @@ namespace UIWindow {
     // State
     Header@ m_header = Header();
     Navigation@ m_navigation = Navigation();
+    
+    void SetActivePage(const string &in pageId) {
+        if (m_navigation !is null) {
+            m_navigation.SetActivePage(pageId);
+        }
+    }
 
     void Render() {
         if (!State::isInEditor || !State::showUI) return;
@@ -29,23 +35,23 @@ namespace UIWindow {
             
             UI::PushStyleColor(UI::Col::ChildBg, Colors::CHILD_BG);
             vec2 contentAreaWindowPos = vec2(0, 0);
-            if (UI::BeginChild("ContentArea", vec2(0, contentHeight), false, UI::WindowFlags::NoScrollbar)) {
+            if (UI::BeginChild("ContentArea", vec2(0, contentHeight), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoMove)) {
                 contentAreaWindowPos = UI::GetWindowPos();
                 
                 float topSectionHeight, buttonY, bottomSectionTopY;
-                SectionResizeButton::CalculateSectionLayout(contentHeight, topSectionHeight, buttonY, bottomSectionTopY);
+                SectionResizeSlider::CalculateSectionLayout(contentHeight, topSectionHeight, buttonY, bottomSectionTopY);
                 
                 // Top section - page content
-                if (UI::BeginChild("Content", vec2(0, topSectionHeight), false, UI::WindowFlags::NoScrollbar)) {
+                if (UI::BeginChild("Content", vec2(0, topSectionHeight), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoMove)) {
                     PageRouter::Render(m_navigation.m_activePage);
                     UI::EndChild();
                 }
                 
                 // Resize button between top and bottom sections
-                SectionResizeButton::Render(buttonY, contentAreaWindowPos, contentHeight);
+                SectionResizeSlider::Render(buttonY, contentAreaWindowPos, contentHeight);
                 
                 // Bottom section - media preview
-                BottomSection::Render(SectionResizeButton::GetBottomSectionHeight());
+                BottomSection::Render(SectionResizeSlider::GetBottomSectionHeight());
             }
             UI::EndChild();
             UI::PopStyleColor();

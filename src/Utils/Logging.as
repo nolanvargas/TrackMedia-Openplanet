@@ -6,9 +6,10 @@ enum LogLevel {
     Trace
 }
 
-LogLevel Setting_LogLevel = LogLevel::Trace;
-
 namespace Logging {
+    [Setting name="Log Level" category="TrackMedia" description="Controls the verbosity of plugin logging. Higher levels include lower levels (Info includes Warn and Error)."]
+    LogLevel Setting_LogLevel = LogLevel::Info;
+
     const string PLUGIN_NAME = "TrackMedia";
 
     void Error(const string &in msg, bool showNotification = false) {

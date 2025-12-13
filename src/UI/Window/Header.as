@@ -1,11 +1,9 @@
 namespace UIWindow {
     class Header {
-        SearchBar@ m_searchBar;
         CachedImage@ m_logo = null;
         string LOGO_URL = "https://www.trackmedia.io/logoFull.png";
 
         Header() {
-            @m_searchBar = SearchBar();
         }
 
         void Render(float navWidth) {

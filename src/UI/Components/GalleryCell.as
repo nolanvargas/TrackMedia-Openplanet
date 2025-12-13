@@ -26,18 +26,15 @@ namespace GalleryCell {
     }
     
     float CalculateImageHeight(GalleryCellData@ data, float contentWidth, float defaultImageWidth) {
-        // Prefer texture's actual size if available, as it may differ from stored dimensions
         if (data.imageState == ImageState::Type::Loaded && data.imageTexture !is null) {
             vec2 texSize = data.imageTexture.GetSize();
             if (texSize.x > 0 && texSize.y > 0) {
                 return (texSize.y / texSize.x) * contentWidth;
             }
         }
-        // Fall back to stored dimensions
         if (data.imageWidth > 0 && data.imageHeight > 0) {
             return (float(data.imageHeight) / float(data.imageWidth)) * contentWidth;
         }
-        // If lockedAspectRatio is true but no dimensions available, use square
         if (data.lockedAspectRatio) {
             return contentWidth;
         }
@@ -51,6 +48,8 @@ namespace GalleryCell {
         UI::PushStyleVar(UI::StyleVar::ItemSpacing, vec2(0, 0));
         
         if (UI::BeginChild("GalleryCell##" + index, vec2(columnWidth, cellHeight), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoScrollWithMouse)) {
+            UI::PushID(int(index));
+            
             float contentWidth = columnWidth - (config.padding * 2);
             
             UI::Dummy(vec2(0, config.padding));
@@ -79,6 +78,8 @@ namespace GalleryCell {
             }
             
             UI::Dummy(vec2(0, config.padding));
+            
+            UI::PopID();
         }
         UI::EndChild();
         
@@ -104,18 +105,13 @@ namespace GalleryCell {
             }
             
             float buttonWidth = button.GetWidth(index);
-            bool isFullWidthButton = (buttonWidth < 0.0f);
+            // Special width values: 100.0f = square button, negative = full width
             if (buttonWidth == 100.0f) {
                 buttonWidth = config.buttonHeight;
-            } else if (isFullWidthButton) {
+            } else if (buttonWidth < 0.0f) {
                 // Sentinel value: use full content width (minus spacing for multiple buttons)
-                if (buttons.Length == 1) {
-                    buttonWidth = contentWidth;
-                } else {
-                    // Multiple buttons: calculate available width accounting for spacing
-                    float totalSpacing = config.padding * float(buttons.Length - 1);
-                    buttonWidth = (contentWidth - totalSpacing) / float(buttons.Length);
-                }
+                float totalSpacing = config.padding * float(buttons.Length - 1);
+                buttonWidth = (contentWidth - totalSpacing) / float(buttons.Length);
             }
             
             vec4 bgColor = button.GetBackgroundColor(index);
@@ -148,7 +144,7 @@ namespace GalleryCell {
                 button.OnClick(index);
             }
             
-            if (isFullWidthButton && UI::IsItemHovered()) {
+            if (buttonWidth < 0.0f && UI::IsItemHovered()) {
                 UI::SetMouseCursor(UI::MouseCursor::Hand);
             }
             
@@ -179,36 +175,52 @@ namespace GalleryCell {
     void RenderImage(GalleryCellData@ data, float contentWidth, float defaultImageWidth) {
         vec2 imageSize = vec2(contentWidth, CalculateImageHeight(data, contentWidth, defaultImageWidth));
         
-        if (data.imageState == ImageState::Type::Loaded && data.imageTexture !is null) {
-            UI::Image(data.imageTexture, imageSize);
-        } else {
-            RenderPlaceholder(imageSize, data.imageState);
+        if (data.imageState == ImageState::Type::Loaded) {
+            UI::Texture@ tex = data.imageTexture;
+
+            // To be applied when webp support is added
+            // UI::Texture@ animTex = GetAnimationFrameTexture(data);
+            // if (animTex !is null) {
+            //     @tex = animTex;
+            // }
+
+            if (tex !is null) {
+                UI::Image(tex, imageSize);
+                return;
+            }
         }
+
+        RenderPlaceholder(imageSize, data.imageState);
     }
     
     void RenderPlaceholder(vec2 size, ImageState::Type state) {
-            UI::PushStyleColor(UI::Col::ChildBg, Colors::GALLERY_CELL_PLACEHOLDER_BG);
+        UI::PushStyleColor(UI::Col::ChildBg, Colors::GALLERY_CELL_PLACEHOLDER_BG);
         UI::Dummy(size);
         vec2 dummyPos = UI::GetCursorPos();
         UI::SetCursorPos(dummyPos - vec2(0, size.y));
         
         string placeholderText = "No image";
+        bool isErrorState = false;
         if (state == ImageState::Type::Loading) {
             placeholderText = "Loading...";
         } else if (state == ImageState::Type::Error) {
             placeholderText = "Error";
-            UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
+            isErrorState = true;
         } else if (state == ImageState::Type::WebpUnsupported) {
             placeholderText = "WebP support coming soon";
-            UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
+            isErrorState = true;
         } else if (state == ImageState::Type::WebmUnsupported) {
             placeholderText = "WEBM unsupported";
+            isErrorState = true;
+        }
+        
+        if (isErrorState) {
             UI::PushStyleColor(UI::Col::Text, Colors::ERROR);
         }
         
         UI::Text(placeholderText);
         
-        if (state == ImageState::Type::Error || state == ImageState::Type::WebpUnsupported || state == ImageState::Type::WebmUnsupported) {
+        if (isErrorState) {
             UI::PopStyleColor();
         }
         

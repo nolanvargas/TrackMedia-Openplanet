@@ -1,7 +1,6 @@
 namespace CollectionsPage {
     void Render() {
         if (!State::hasRequestedCollections && !State::isRequestingCollections) {
-            Logging::Info("CollectionsPage: Starting collection request");
             State::isRequestingCollections = true;
             startnew(CollectionsApiService::RequestCollections);
         }
@@ -15,9 +14,16 @@ namespace CollectionsPage {
                 RenderGrid();
                 return;
             } else {
+                // Ensure data is requested for collection tabs before rendering
+                CollectionTab@ collectionTab = cast<CollectionTab>(activeTab);
+                if (collectionTab !is null) {
+                    collectionTab.EnsureDataRequested();
+                }
+                
                 activeTab.PushTabStyle(State::collectionsActiveTabIndex);
                 activeTab.Render();
                 activeTab.PopTabStyleWithText();
+                return;
             }
         }
         

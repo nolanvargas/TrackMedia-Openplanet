@@ -20,13 +20,41 @@ class Collection {
             return;
         }
         try {
-            collectionId = JsonUtils::SafeGetString(json, "collection_id");
-            accountId = JsonUtils::SafeGetString(json, "account_id");
-            userName = JsonUtils::SafeGetString(json, "user_name");
-            coverKey = JsonUtils::SafeGetString(json, "cover_key");
-            collectionName = JsonUtils::SafeGetString(json, "collection_name");
-            createdAt = JsonUtils::SafeGetInt64(json, "created_at");
-            isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            try {
+                collectionId = json.HasKey("collection_id") && json["collection_id"].GetType() != Json::Type::Null ? string(json["collection_id"]) : "";
+            } catch {
+                Logging::Error("Error parsing collection_id: " + getExceptionInfo());
+            }
+            try {
+                accountId = json.HasKey("account_id") && json["account_id"].GetType() != Json::Type::Null ? string(json["account_id"]) : "";
+            } catch {
+                Logging::Error("Error parsing account_id: " + getExceptionInfo());
+            }
+            try {
+                userName = json.HasKey("user_name") && json["user_name"].GetType() != Json::Type::Null ? string(json["user_name"]) : "";
+            } catch {
+                Logging::Error("Error parsing user_name: " + getExceptionInfo());
+            }
+            try {
+                coverKey = json.HasKey("cover_key") && json["cover_key"].GetType() != Json::Type::Null ? string(json["cover_key"]) : "";
+            } catch {
+                Logging::Error("Error parsing cover_key: " + getExceptionInfo());
+            }
+            try {
+                collectionName = json.HasKey("collection_name") && json["collection_name"].GetType() != Json::Type::Null ? string(json["collection_name"]) : "";
+            } catch {
+                Logging::Error("Error parsing collection_name: " + getExceptionInfo());
+            }
+            try {
+                createdAt = json.HasKey("created_at") && json["created_at"].GetType() != Json::Type::Null ? int64(json["created_at"]) : 0;
+            } catch {
+                Logging::Error("Error parsing created_at: " + getExceptionInfo());
+            }
+            try {
+                isUnlisted = json.HasKey("is_unlisted") && json["is_unlisted"].GetType() != Json::Type::Null ? bool(json["is_unlisted"]) : false;
+            } catch {
+                Logging::Error("Error parsing is_unlisted: " + getExceptionInfo());
+            }
         } catch {
             Logging::Error("Failed to parse Collection JSON: " + getExceptionInfo());
         }
@@ -63,16 +91,14 @@ class Collection {
             return;
         }
         try {
-            collectionId = JsonUtils::SafeGetString(json, "collection_id");
-            accountId = JsonUtils::SafeGetString(json, "account_id");
-            collectionName = JsonUtils::SafeGetString(json, "collection_name");
-            createdAt = JsonUtils::SafeGetInt64(json, "created_at");
-            isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            collectionId = string(json["collection_id"]);
+            accountId = string(json["account_id"]);
+            collectionName = string(json["collection_name"]);
+            createdAt = int64(json["created_at"]);
+            isUnlisted = bool(json["is_unlisted"]);
             
-            string newCoverKey = JsonUtils::SafeGetString(json, "cover_key");
-            if (newCoverKey.Length > 0) {
-                coverKey = newCoverKey;
-            }
+            string newCoverKey = json.HasKey("cover_key") && json["cover_key"].GetType() != Json::Type::Null ? string(json["cover_key"]) : "";
+            coverKey = newCoverKey.Length > 0 ? newCoverKey : "";
             
             items.RemoveRange(0, items.Length);
             if (json.HasKey("items") && json.Get("items").GetType() == Json::Type::Array) {

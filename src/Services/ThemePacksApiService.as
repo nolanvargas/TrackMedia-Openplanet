@@ -3,45 +3,20 @@ namespace ThemePacksApiService {
         RequestThemePacksWithParams("", 20);
     }
 
-    void RequestThemePacksWithParams(const string &in start = "", int limit = 20) {        
-        State::isRequestingThemePacks = true;
-        State::themePacksRequestStatus = "Requesting...";
+    void RequestThemePacksWithParams(const string &in start = "", int limit = 20) {     
+        if (limit <= 0) limit = 20;
+        State::ResetThemePacksRequest();
         
         // API takes a uuidv4 as the start parameter for an arbitrary set
         string startParam = start.Length > 0 ? start : API::GenerateUUIDv4();
         string url = "https://api.trackmedia.io/theme-packs?start=" + startParam + "&limit=" + limit;
         
         try {
-            auto req = API::Get(url);
-            if (req is null) {
-                State::themePacksRequestStatus = "Error";
-                State::isRequestingThemePacks = false;
-                return;
-            }
-            
-            while (!req.Finished()) {
-                yield();
-            }
-            
-            int responseCode = req.ResponseCode();
-            if (responseCode != 200) {
-                State::themePacksRequestStatus = "Failed (HTTP " + responseCode + ")";
-                Logging::Error("Theme packs API request failed with code: " + responseCode);
-                State::isRequestingThemePacks = false;
-                return;
-            }
+            auto json = API::GetAsync(url);
             
             try {
-                auto json = req.Json();
-                if (json.GetType() != Json::Type::Array) {
-                    State::themePacksRequestStatus = "Failed (Invalid JSON)";
-                    Logging::Error("Theme packs API: Expected JSON Array, got type: " + json.GetType());
-                    State::isRequestingThemePacks = false;
-                    return;
-                }
-                
-                State::themePacksRequestStatus = "Success";
-                State::themePacks.RemoveRange(0, State::themePacks.Length);
+                State::SetThemePacksSuccess();
+                State::ClearThemePacks();
                 
                 for (uint i = 0; i < json.Length; i++) {
                     try {
@@ -58,11 +33,11 @@ namespace ThemePacksApiService {
                 
                 State::hasRequestedThemePacks = true;
             } catch {
-                State::themePacksRequestStatus = "Error";
+                State::SetThemePacksError("Error");
                 Logging::Error("Failed to parse theme packs JSON: " + getExceptionInfo());
             }
         } catch {
-            State::themePacksRequestStatus = "Error";
+            State::SetThemePacksError("Error");
             Logging::Error("Exception in RequestThemePacks: " + getExceptionInfo());
         }
         
@@ -70,44 +45,45 @@ namespace ThemePacksApiService {
     }
 
     void RequestThemePackById(const string &in themePackId) {
-        if (themePackId.Length == 0) {
-            Logging::Warn("RequestThemePackById called with empty ID");
+        if (themePackId.Length == 0) { throw("RequestThemePackById called with empty ID"); }
+        
+        ThemePack@ foundThemePack = FindThemePackInState(themePackId);
+        if (foundThemePack is null) {
+            Logging::Warn("Theme pack not found in state for ID: " + themePackId);
+            return;
+        }
+        
+        RequestThemePackById(themePackId, foundThemePack);
+    }
+    
+    void RequestThemePackById(const string &in themePackId, ThemePack@ themePack) {
+        if (themePackId.Length == 0 || themePack is null) {
+            Logging::Warn("RequestThemePackById called with empty ID or null theme pack");
             return;
         }
         
         string url = "https://api.trackmedia.io/theme-packs/id/" + themePackId;
         
         try {
-            auto req = API::Get(url);
-            if (req is null) {
-                Logging::Error("Failed to create request for theme pack: " + themePackId);
-                return;
-            }
-            
-            while (!req.Finished()) {
-                yield();
-            }
-            
-            if (req.ResponseCode() != 200) {
-                Logging::Error("Theme pack by ID request failed: " + themePackId + " (code: " + req.ResponseCode() + ")");
-                return;
-            }
-            
+            auto json = API::GetAsync(url);
             try {
-                auto json = req.Json();
-                ThemePack@ foundThemePack = FindThemePackInState(themePackId);
-                
-                if (foundThemePack !is null) {
-                    foundThemePack.UpdateWithFullData(json);
-                } else {
-                    Logging::Warn("Theme pack not found in state for ID: " + themePackId);
-                }
+                themePack.UpdateWithFullData(json);
             } catch {
                 Logging::Error("Failed to parse theme pack JSON: " + getExceptionInfo());
             }
         } catch {
             Logging::Error("Exception in RequestThemePackById: " + getExceptionInfo());
         }
+    }
+    
+    // Wrapper for startnew that takes a ThemePack@ via ref
+    void RequestThemePackByIdWithRef(ref@ data) {
+        ThemePack@ themePack = cast<ThemePack>(data);
+        if (themePack is null || themePack.themePackId.Length == 0) {
+            Logging::Warn("RequestThemePackByIdWithRef called with null theme pack or empty ID");
+            return;
+        }
+        RequestThemePackById(themePack.themePackId, themePack);
     }
     
     ThemePack@ FindThemePackInState(const string &in themePackId) {

@@ -29,8 +29,8 @@ namespace PinnedTabsStorage {
             Json::Value collectionsArray = root["collections"];
             for (uint i = 0; i < collectionsArray.Length; i++) {
                 Json::Value item = collectionsArray[i];
-                string id = JsonUtils::SafeGetString(item, "id");
-                string name = JsonUtils::SafeGetString(item, "name");
+                string id = string(item["id"]);
+                string name = string(item["name"]);
                 if (id.Length > 0) {
                     g_pinnedCollections[id] = name;
                 }
@@ -39,8 +39,8 @@ namespace PinnedTabsStorage {
             Json::Value themePacksArray = root["themePacks"];
             for (uint i = 0; i < themePacksArray.Length; i++) {
                 Json::Value item = themePacksArray[i];
-                string id = JsonUtils::SafeGetString(item, "id");
-                string name = JsonUtils::SafeGetString(item, "name");
+                string id = string(item["id"]);
+                string name = string(item["name"]);
                 if (id.Length > 0) {
                     g_pinnedThemePacks[id] = name;
                 }

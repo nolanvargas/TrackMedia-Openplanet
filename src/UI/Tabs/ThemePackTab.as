@@ -4,8 +4,19 @@ class ThemePackTab : Tab {
     
     ThemePackTab(ThemePack@ themePack) {
         @m_themePack = themePack;
+        color = Colors::TAB_THEME_PACK;
         // If theme pack already has sign types, mark data as requested
         if (themePack !is null && themePack.GetSignTypeKeys().Length > 0) {
+            m_hasRequestedData = true;
+        }
+    }
+    
+    void EnsureDataRequested() {
+        if (m_themePack is null) return;
+        // If placeholder (no sign types) and haven't requested data yet, trigger data request
+        array<string> signTypeKeys = m_themePack.GetSignTypeKeys();
+        if (!m_hasRequestedData && signTypeKeys.Length == 0 && m_themePack.themePackId.Length > 0) {
+            startnew(ThemePacksApiService::RequestThemePackByIdWithRef, m_themePack);
             m_hasRequestedData = true;
         }
     }
@@ -13,10 +24,6 @@ class ThemePackTab : Tab {
     string GetLabel() override {
         if (m_themePack is null || m_themePack.packName.Length == 0) return "Unknown";
         return m_themePack.packName.Length > 25 ? m_themePack.packName.SubStr(0, 22) + "..." : m_themePack.packName;
-    }
-    
-    vec4 GetColor() override {
-        return Colors::TAB_THEME_PACK;
     }
     
     vec4 GetColor(int index) override {
@@ -32,12 +39,10 @@ class ThemePackTab : Tab {
             return;
         }
         
-        // If placeholder (no sign types) and haven't requested data yet, trigger data request
+        // Ensure data is requested when tab is rendered
+        EnsureDataRequested();
+        
         array<string> signTypeKeys = m_themePack.GetSignTypeKeys();
-        if (!m_hasRequestedData && signTypeKeys.Length == 0 && m_themePack.themePackId.Length > 0) {
-            startnew(ThemePacksApiService::RequestThemePackById, m_themePack.themePackId);
-            m_hasRequestedData = true;
-        }
         UI::PushFontSize(24.0f);
         UI::Text(m_themePack.packName);
         UI::PopFontSize();

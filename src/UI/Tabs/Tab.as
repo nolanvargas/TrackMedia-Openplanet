@@ -1,18 +1,20 @@
 class Tab {
     bool m_isPinned = false;
+    bool isVisible = true;
+    bool canClose = true;
+    string label = "";
+    string tooltip = "";
+    string tabId = "";
+    vec4 color = Colors::TAB_DEFAULT;
     
-    bool IsVisible() { return true; }
-    bool CanClose() { return true; }
     bool IsPinned() { return m_isPinned; }
     void SetPinned(bool pinned) { m_isPinned = pinned; }
-    string GetLabel() { return ""; }
-    string GetTooltip() { return ""; }
-    string GetTabId() { return ""; }  // Override in subclasses for tab matching
-    vec4 GetColor() { return Colors::TAB_DEFAULT; }
-    vec4 GetColor(int index) { return GetColor(); }  // Override for index-based colors
+    string GetLabel() { return label; }
+    string GetTooltip() { return tooltip; }
+    string GetTabId() { return tabId; }
+    vec4 GetColor(int index) { return color; }  // Override for index-based colors
 
     void PushTabStyle() {
-        vec4 color = GetColor();
         UI::PushStyleColor(UI::Col::Tab, color * Colors::TAB_MULTIPLIER);
         UI::PushStyleColor(UI::Col::TabHovered, color * Colors::TAB_HOVERED_MULTIPLIER);
         UI::PushStyleColor(UI::Col::TabActive, color);
@@ -44,6 +46,5 @@ class Tab {
         UI::PopStyleColor(6);  // 6 colors including text color
     }
 
-    void Reload() {}
     void Render() {}
 }

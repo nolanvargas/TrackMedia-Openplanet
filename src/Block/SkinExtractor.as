@@ -1,47 +1,35 @@
 namespace SkinExtractor {
     void ExtractBlockSkinProperties(CGameCtnBlock@ block) {
-        if (block is null) {
-            return;
-        }
-        
+    if (block is null) return;
+    
         auto@ blockSkin = cast<CGameCtnBlockSkin>(block.Skin);
-        if (blockSkin is null) {
-            return;
+        if (blockSkin is null) return;
+    
+        string skinIdName = blockSkin.IdName;
+        State::skinningProperties["Skin.IdName"] = skinIdName;
+    
+        auto@ packDescriptor = blockSkin.PackDesc;
+        if (packDescriptor !is null) {
+            string packDescriptorName = packDescriptor.Name;
+            State::skinningProperties["Skin.PackDesc.Name"] = packDescriptorName;
+            string packDescriptorUrl = packDescriptor.Url;
+            State::skinningProperties["Skin.PackDesc.Url"] = packDescriptorUrl;
         }
-        
-        string skinId = blockSkin.IdName;
-        if (skinId.Length > 0) {
-            State::skinningProperties["Skin.IdName"] = skinId;
+    
+        auto@ parentPackDescriptor = blockSkin.ParentPackDesc;
+        if (parentPackDescriptor !is null) {
+            string parentPackDescriptorName = parentPackDescriptor.Name;
+            State::skinningProperties["Skin.ParentPackDesc.Name"] = parentPackDescriptorName;
+            string parentPackDescriptorUrl = parentPackDescriptor.Url;
+            State::skinningProperties["Skin.ParentPackDesc.Url"] = parentPackDescriptorUrl;
         }
-        
-        auto@ packDesc = blockSkin.PackDesc;
-        if (packDesc !is null) {
-            if (packDesc.Name.Length > 0) {
-                State::skinningProperties["Skin.PackDesc.Name"] = packDesc.Name;
-            }
-            if (packDesc.Url.Length > 0) {
-                State::skinningProperties["Skin.PackDesc.Url"] = packDesc.Url;
-            }
-        }
-        
-        auto@ parentPackDesc = blockSkin.ParentPackDesc;
-        if (parentPackDesc !is null) {
-            if (parentPackDesc.Name.Length > 0) {
-                State::skinningProperties["Skin.ParentPackDesc.Name"] = parentPackDesc.Name;
-            }
-            if (parentPackDesc.Url.Length > 0) {
-                State::skinningProperties["Skin.ParentPackDesc.Url"] = parentPackDesc.Url;
-            }
-        }
-        
-        auto@ foregroundPackDesc = blockSkin.ForegroundPackDesc;
-        if (foregroundPackDesc !is null) {
-            if (foregroundPackDesc.Name.Length > 0) {
-                State::skinningProperties["Skin.ForegroundPackDesc.Name"] = foregroundPackDesc.Name;
-            }
-            if (foregroundPackDesc.Url.Length > 0) {
-                State::skinningProperties["Skin.ForegroundPackDesc.Url"] = foregroundPackDesc.Url;
-            }
+    
+        auto@ foregroundPackDescriptor = blockSkin.ForegroundPackDesc;
+        if (foregroundPackDescriptor !is null) {
+            string foregroundPackDescriptorName = foregroundPackDescriptor.Name;
+            State::skinningProperties["Skin.ForegroundPackDesc.Name"] = foregroundPackDescriptorName;
+            string foregroundPackDescriptorUrl = foregroundPackDescriptor.Url;
+            State::skinningProperties["Skin.ForegroundPackDesc.Url"] = foregroundPackDescriptorUrl;
         }
     }
 }

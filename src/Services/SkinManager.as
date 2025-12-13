@@ -1,12 +1,6 @@
+// This was to originaly test for programatic skinning. Hardly works. May remove later.
+
 namespace SkinManager {
-    CGameEditorPluginMap@ GetEditorPluginMap() {
-        auto editor = cast<CGameCtnEditorFree>(GetApp().Editor);
-        if (editor is null) {
-            return null;
-        }
-        return cast<CGameEditorPluginMap>(editor.PluginMapType);
-    }
-    
     void SetSelectedBlock(CGameCtnBlock@ block) {
         if (State::selectedBlock is block) return;
         @State::selectedBlock = block;
@@ -30,7 +24,7 @@ namespace SkinManager {
     void RefreshBlockSkinLists() {
         ClearBlockSkinLists();
         
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedBlock is null) {
             return;
         }
@@ -43,7 +37,9 @@ namespace SkinManager {
         bool isSkinnable = false;
         try {
             isSkinnable = editor.IsBlockModelSkinnable(blockModel);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to check if block model is skinnable");
+        }
         
         if (!isSkinnable) {
             return;
@@ -52,9 +48,15 @@ namespace SkinManager {
         wstring currSkin = "";
         wstring currBg = "";
         wstring currFg = "";
-        try { currSkin = editor.GetBlockSkin(State::selectedBlock); } catch {}
-        try { currBg = editor.GetBlockSkinBg(State::selectedBlock); } catch {}
-        try { currFg = editor.GetBlockSkinFg(State::selectedBlock); } catch {}
+        try { currSkin = editor.GetBlockSkin(State::selectedBlock); } catch {
+            Logging::Debug("Failed to get block skin");
+        }
+        try { currBg = editor.GetBlockSkinBg(State::selectedBlock); } catch {
+            Logging::Debug("Failed to get block background skin");
+        }
+        try { currFg = editor.GetBlockSkinFg(State::selectedBlock); } catch {
+            Logging::Debug("Failed to get block foreground skin");
+        }
         
         uint nbSkins = editor.GetNbBlockModelSkins(blockModel);
         for (uint i = 0; i < nbSkins; i++) {
@@ -94,7 +96,7 @@ namespace SkinManager {
     void RefreshItemSkinLists() {
         ClearItemSkinLists();
         
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedItem is null) {
             return;
         }
@@ -107,7 +109,9 @@ namespace SkinManager {
         bool isSkinnable = false;
         try {
             isSkinnable = editor.IsItemModelSkinnable(itemModel);
-        } catch {}
+        } catch {
+            Logging::Debug("Failed to check if item model is skinnable");
+        }
         
         if (!isSkinnable) {
             return;
@@ -165,12 +169,14 @@ namespace SkinManager {
     }
     
     void ApplyBlockSkins() {
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedBlock is null) return;
         if (State::blockSkinSelected >= 0 && State::blockSkinSelected < int(State::blockSkinFiles.Length)) {
             try {
                 editor.SetBlockSkin(State::selectedBlock, State::blockSkinFiles[State::blockSkinSelected]);
-            } catch {}
+            } catch {
+                Logging::Warn("Failed to set block skin");
+            }
         }
         wstring newBg = "";
         wstring newFg = "";
@@ -187,21 +193,27 @@ namespace SkinManager {
     }
     
     void SetBlockSkinLayer(const string &in layer, const wstring &in skinFile) {
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedBlock is null) return;
         if (layer == "skin") {
             try {
                 editor.SetBlockSkin(State::selectedBlock, skinFile);
                 RefreshBlockSkinLists();
-            } catch {}
+            } catch {
+                Logging::Warn("Failed to set block skin layer");
+            }
         } else if (layer == "bg") {
             wstring currFg = "";
-            try { currFg = editor.GetBlockSkinFg(State::selectedBlock); } catch {}
+            try { currFg = editor.GetBlockSkinFg(State::selectedBlock); } catch {
+                Logging::Debug("Failed to get block foreground skin");
+            }
             editor.SetBlockSkins(State::selectedBlock, skinFile, currFg);
             RefreshBlockSkinLists();
         } else if (layer == "fg") {
             wstring currBg = "";
-            try { currBg = editor.GetBlockSkinBg(State::selectedBlock); } catch {}
+            try { currBg = editor.GetBlockSkinBg(State::selectedBlock); } catch {
+                Logging::Debug("Failed to get block background skin");
+            }
             editor.SetBlockSkins(State::selectedBlock, currBg, skinFile);
             RefreshBlockSkinLists();
         }
@@ -212,7 +224,7 @@ namespace SkinManager {
     }
     
     void ApplyItemSkins() {
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedItem is null) return;
         wstring newBg = "";
         wstring newFg = "";
@@ -229,12 +241,16 @@ namespace SkinManager {
     }
     
     void SetItemSkinLayer(const string &in layer, const wstring &in skinFile) {
-        auto@ editor = GetEditorPluginMap();
+        auto@ editor = EditorUtils::GetEditorPluginMap();
         if (editor is null || State::selectedItem is null) return;
         wstring currBg = "";
         wstring currFg = "";
-        try { currBg = editor.GetItemSkinBg(State::selectedItem); } catch {}
-        try { currFg = editor.GetItemSkinFg(State::selectedItem); } catch {}
+        try { currBg = editor.GetItemSkinBg(State::selectedItem); } catch {
+            Logging::Debug("Failed to get item background skin");
+        }
+        try { currFg = editor.GetItemSkinFg(State::selectedItem); } catch {
+            Logging::Debug("Failed to get item foreground skin");
+        }
         if (layer == "bg") {
             editor.SetItemSkins(State::selectedItem, skinFile, currFg);
             RefreshItemSkinLists();

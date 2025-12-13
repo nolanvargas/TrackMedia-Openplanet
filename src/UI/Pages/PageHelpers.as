@@ -1,5 +1,5 @@
 namespace PageHelpers {
-    bool RenderGrid(uint itemCount, bool isRequesting, string requestStatus, string loadingText = "Loading...", string emptyText = "No items found.") {
+    bool RenderGrid(uint itemCount, bool isRequesting, const string &in requestStatus, const string &in loadingText = "Loading...", const string &in emptyText = "No items found.") {
         if (itemCount == 0) {
             if (isRequesting) {
                 UI::Text(loadingText);
@@ -16,8 +16,8 @@ namespace PageHelpers {
         array<Tab@>@ tabs,
         int&out activeTabIndex,
         bool&out forceTabSelection,
-        string tabBarId,
-        string pageTabLabel,
+        const string &in tabBarId,
+        const string &in pageTabLabel,
         bool&out pinnedTabsLoaded,
         bool isCollection
     ) {
@@ -35,7 +35,30 @@ namespace PageHelpers {
             pinnedTabsLoaded = true;
         }
         
+        int previousActiveTabIndex = activeTabIndex;
         TabManager::RenderTabBar(tabs, activeTabIndex, forceTabSelection, tabBarId, activeTabIndex, forceTabSelection);
+        
+        // If a non-page tab (index > 0) was selected, ensure we're on the correct page and request data
+        if (activeTabIndex > 0 && activeTabIndex != previousActiveTabIndex && activeTabIndex < int(tabs.Length)) {
+            Tab@ selectedTab = tabs[activeTabIndex];
+            if (selectedTab !is null) {
+                string targetPage = isCollection ? "Collections" : "Theme Packs";
+                UIWindow::SetActivePage(targetPage);
+                
+                // Request data for the tab if it's a collection or theme pack tab
+                if (isCollection) {
+                    CollectionTab@ collectionTab = cast<CollectionTab>(selectedTab);
+                    if (collectionTab !is null) {
+                        collectionTab.EnsureDataRequested();
+                    }
+                } else {
+                    ThemePackTab@ themePackTab = cast<ThemePackTab>(selectedTab);
+                    if (themePackTab !is null) {
+                        themePackTab.EnsureDataRequested();
+                    }
+                }
+            }
+        }
     }
     
     void CloseTab(array<Tab@>@ tabs, int&out activeTabIndex, int index) {

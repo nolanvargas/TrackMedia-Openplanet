@@ -21,13 +21,41 @@ class ThemePack {
             return;
         }
         try {
-            themePackId = JsonUtils::SafeGetString(json, "theme_pack_id");
-            accountId = JsonUtils::SafeGetString(json, "account_id");
-            userName = JsonUtils::SafeGetString(json, "user_name");
-            coverId = JsonUtils::SafeGetString(json, "cover_id");
-            packName = JsonUtils::SafeGetString(json, "pack_name");
-            createdAt = JsonUtils::SafeGetInt64(json, "created_at");
-            isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            try {
+                themePackId = json.HasKey("theme_pack_id") ? string(json["theme_pack_id"]) : "";
+            } catch {
+                Logging::Error("Error parsing theme_pack_id: " + getExceptionInfo());
+            }
+            try {
+                accountId = json.HasKey("account_id") ? string(json["account_id"]) : "";
+            } catch {
+                Logging::Error("Error parsing account_id: " + getExceptionInfo());
+            }
+            try {
+                userName = json.HasKey("user_name")  ? string(json["user_name"]) : "";
+            } catch {
+                Logging::Error("Error parsing user_name: " + getExceptionInfo());
+            }
+            try {
+                coverId = json.HasKey("cover_id") ? string(json["cover_id"]) : "";
+            } catch {
+                Logging::Error("Error parsing cover_id: " + getExceptionInfo());
+            }
+            try {
+                packName = json.HasKey("pack_name")  ? string(json["pack_name"]) : "";
+            } catch {
+                Logging::Error("Error parsing pack_name: " + getExceptionInfo());
+            }
+            try {
+                createdAt = json.HasKey("created_at") ? int64(json["created_at"]) : 0;
+            } catch {
+                Logging::Error("Error parsing created_at: " + getExceptionInfo());
+            }
+            try {
+                isUnlisted = json.HasKey("is_unlisted")  ? bool(json["is_unlisted"]) : false;
+            } catch {
+                Logging::Error("Error parsing is_unlisted: " + getExceptionInfo());
+            }
         } catch {
             Logging::Error("Failed to parse ThemePack JSON: " + getExceptionInfo());
         }
@@ -64,13 +92,13 @@ class ThemePack {
             return;
         }
         try {
-            themePackId = JsonUtils::SafeGetString(json, "theme_pack_id");
-            accountId = JsonUtils::SafeGetString(json, "account_id");
-            packName = JsonUtils::SafeGetString(json, "pack_name");
-            createdAt = JsonUtils::SafeGetInt64(json, "created_at");
-            isUnlisted = JsonUtils::SafeGetBool(json, "is_unlisted");
+            themePackId = string(json["theme_pack_id"]);
+            accountId = string(json["account_id"]);
+            packName = string(json["pack_name"]);
+            createdAt = int64(json["created_at"]);
+            isUnlisted = bool(json["is_unlisted"]);
             
-            string newCoverId = JsonUtils::SafeGetString(json, "cover_id");
+            string newCoverId = json.HasKey("cover_id") && json["cover_id"].GetType() != Json::Type::Null ? string(json["cover_id"]) : "";
             if (newCoverId.Length > 0) {
                 coverId = newCoverId;
             }

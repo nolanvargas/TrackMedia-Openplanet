@@ -7,11 +7,8 @@ namespace ThemePacksPageTabManager {
         if (pack is null) return;
         ThemePackTab@ newTab = ThemePackTab(pack);
         if (TabManager::OpenTab(State::themePacksTabs, State::themePacksActiveTabIndex, State::themePacksForceTabSelection, pack.themePackId, newTab, 5, State::themePacksActiveTabIndex, State::themePacksForceTabSelection)) {
-            startnew(ThemePacksApiService::RequestThemePackById, pack.themePackId);
+            UIWindow::SetActivePage("Theme Packs");
+            startnew(ThemePacksApiService::RequestThemePackByIdWithRef, pack);
         }
-    }
-
-    void CloseTab(int index) {
-        PageHelpers::CloseTab(State::themePacksTabs, State::themePacksActiveTabIndex, index);
     }
 }

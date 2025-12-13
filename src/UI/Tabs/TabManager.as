@@ -1,6 +1,6 @@
 namespace TabManager {
     void RenderPinButton(Tab@ tab, uint i) {
-        if (!tab.CanClose() || i == 0) return;
+        if (!tab.canClose || i == 0) return;
     
         UI::SameLine(0, 0);
         vec2 p = UI::GetCursorPos();
@@ -32,9 +32,9 @@ namespace TabManager {
                     } else {
                         ThemePackTab@ themePackTab = cast<ThemePackTab>(tab);
                         if (themePackTab !is null) {
-                            ThemePack@ p = themePackTab.GetThemePack();
-                            if (p !is null) {
-                                name = p.packName;
+                            ThemePack@ themePack = themePackTab.GetThemePack();
+                            if (themePack !is null) {
+                                name = themePack.packName;
                             }
                         }
                     }
@@ -64,7 +64,7 @@ namespace TabManager {
         UI::PopStyleColor();
     }
     
-    void RenderTabBar(array<Tab@>@ tabs, int active, bool force, string id,
+    void RenderTabBar(array<Tab@>@ tabs, int active, bool force, const string &in id,
         int&out newActive, bool&out newForce) {
 
         int cur = active;
@@ -88,9 +88,9 @@ namespace TabManager {
 
             string label = t.GetLabel();
             if (label.Length == 0) label = "Tab " + i;
-            if (t.CanClose() && i > 0) label += "    ";
+            if (t.canClose && i > 0) label += "    ";
 
-            bool useIndex = t.CanClose() && i > 0;
+            bool useIndex = t.canClose && i > 0;
             if (useIndex) t.PushTabStyle(i);
             else t.PushTabStyle();
 
@@ -106,7 +106,7 @@ namespace TabManager {
 
             RenderPinButton(t, i);
 
-            if (!open && t.CanClose() && i > 0)
+            if (!open && t.canClose && i > 0)
             closeAt = int(i);
 
             if (useIndex) t.PopTabStyleWithText();
@@ -129,7 +129,7 @@ namespace TabManager {
     // Open a tab by ID - finds existing tab or creates new one
     // Returns true if tab was opened/activated, false if newTab is null
     bool OpenTab(array<Tab@>@ tabs, int active, bool force,
-        string id, Tab@ tab, uint max,
+        const string &in id, Tab@ tab, uint max,
         int&out newActive, bool&out newForce) {
 
             if (tab is null) {
@@ -169,9 +169,9 @@ namespace TabManager {
     
         // Get the tab before removing it to check if it was pinned
         Tab@ closingTab = tabs[idx];
-        if (closingTab !is null && closingTab.IsPinned() && closingTab.CanClose()) {
+        if (closingTab !is null && closingTab.IsPinned() && closingTab.canClose) {
             // Remove from storage if it was pinned
-            string tabId = closingTab.GetTabId();
+            string tabId = closingTab.tabId;
             if (tabId.Length > 0) {
                 CollectionTab@ collectionTab = cast<CollectionTab>(closingTab);
                 bool isCollection = collectionTab !is null;

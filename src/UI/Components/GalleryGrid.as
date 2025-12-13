@@ -5,11 +5,14 @@ namespace GalleryGrid {
         float columnSpacing = 8.0f;
     }
     
-    // Reusable arrays to avoid per-frame allocation
     array<float> g_columnHeights;
     array<float> g_itemHeights;
     GalleryCell::Config g_cellConfig;
     
+    
+    // Base overload: Renders gallery cells directly from pre-built cell data.
+    // Use this when you already have GalleryCellData objects ready to display.
+    // This is the most efficient option as it skips data conversion.
     void Render(array<GalleryCellData@>@ cellDataArray, Config@ config) {
         if (cellDataArray is null || cellDataArray.Length == 0) return;
         
@@ -66,45 +69,54 @@ namespace GalleryGrid {
     }
     
     // Reusable cell data array to avoid per-frame allocation
-    array<GalleryCellData@> g_cellDataArray;
+    array<GalleryCellData@> g_reusableCellDataArray;
     
+    // Overload: Renders media items by converting them to cell data first.
+    // Use this when you have MediaItem objects and want to display them with a specific button.
+    // This version builds cell data from MediaItem objects internally.
     void Render(array<MediaItem@>@ items, GalleryButton@ button, Config@ config) {
         if (items is null || items.Length == 0) return;
         
-        g_cellDataArray.Resize(0);
+        g_reusableCellDataArray.Resize(0);
         for (uint i = 0; i < items.Length; i++) {
             GalleryCellData@ data = GalleryCellBuilders::BuildFromMediaItem(items[i], i, button, items);
             if (data !is null) {
-                g_cellDataArray.InsertLast(data);
+                g_reusableCellDataArray.InsertLast(data);
             }
         }
-        Render(g_cellDataArray, config);
+        Render(g_reusableCellDataArray, config);
     }
     
+    // Overload: Renders collections by converting them to cell data first.
+    // Use this when you have Collection objects and want to display them with a specific button.
+    // This version builds cell data from Collection objects internally.
     void Render(array<Collection@>@ collections, CollectionGalleryButton@ button, Config@ config) {
         if (collections is null || collections.Length == 0) return;
         
-        g_cellDataArray.Resize(0);
+        g_reusableCellDataArray.Resize(0);
         for (uint i = 0; i < collections.Length; i++) {
             GalleryCellData@ data = GalleryCellBuilders::BuildFromCollection(collections[i], i, button, collections);
             if (data !is null) {
-                g_cellDataArray.InsertLast(data);
+                g_reusableCellDataArray.InsertLast(data);
             }
         }
-        Render(g_cellDataArray, config);
+        Render(g_reusableCellDataArray, config);
     }
     
+    // Overload: Renders theme packs by converting them to cell data first.
+    // Use this when you have ThemePack objects and want to display them with a specific button.
+    // This version builds cell data from ThemePack objects internally.
     void Render(array<ThemePack@>@ themePacks, ThemePackGalleryButton@ button, Config@ config) {
         if (themePacks is null || themePacks.Length == 0) return;
         
-        g_cellDataArray.Resize(0);
+        g_reusableCellDataArray.Resize(0);
         for (uint i = 0; i < themePacks.Length; i++) {
             GalleryCellData@ data = GalleryCellBuilders::BuildFromThemePack(themePacks[i], i, button, themePacks);
             if (data !is null) {
-                g_cellDataArray.InsertLast(data);
+                g_reusableCellDataArray.InsertLast(data);
             }
         }
-        Render(g_cellDataArray, config);
+        Render(g_reusableCellDataArray, config);
     }
 }
 

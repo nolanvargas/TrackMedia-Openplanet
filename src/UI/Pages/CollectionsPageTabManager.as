@@ -7,12 +7,9 @@ namespace CollectionsPageTabManager {
         if (collection is null) return;
         CollectionTab@ newTab = CollectionTab(collection);
         if (TabManager::OpenTab(State::collectionsTabs, State::collectionsActiveTabIndex, State::collectionsForceTabSelection, collection.collectionId, newTab, 5, State::collectionsActiveTabIndex, State::collectionsForceTabSelection)) {
-            startnew(CollectionsApiService::RequestCollectionById, collection.collectionId);
+            UIWindow::SetActivePage("Collections");
+            startnew(CollectionsApiService::RequestCollectionByIdWithRef, collection);
         }
-    }
-    
-    void CloseTab(int index) {
-        PageHelpers::CloseTab(State::collectionsTabs, State::collectionsActiveTabIndex, index);
     }
 }
 

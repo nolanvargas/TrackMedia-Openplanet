@@ -122,18 +122,9 @@ namespace SkinPreviewRenderer {
         textureBottomY = padY + display.y;
         
         UI::SetCursorPos(vec2(padX, padY));
-        if (UI::BeginChild("CenteredTexture", display, false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoInputs)) {
-            UI::Image(tex, display);
-            UI::EndChild();
-        }
-    }
-    
-    CGameEditorPluginMap@ GetEditorPluginMap() {
-        auto editor = cast<CGameCtnEditorFree>(GetApp().Editor);
-        if (editor is null) {
-            return null;
-        }
-        return cast<CGameEditorPluginMap>(editor.PluginMapType);
+        UI::BeginChild("CenteredTexture", display, false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoInputs);
+        UI::Image(tex, display);
+        UI::EndChild();
     }
     
     void SetAppliedSkin(const string &in skinUrl) {
@@ -156,12 +147,14 @@ namespace SkinPreviewRenderer {
             // Otherwise get current skin from block
             if (State::blockSkinSelected < 0 || State::blockSkinSelected >= int(State::blockSkinFiles.Length)) return;
             
-            auto@ editor = GetEditorPluginMap();
+            auto@ editor = EditorUtils::GetEditorPluginMap();
             if (editor !is null) {
                 wstring currSkin = "";
                 try { 
                     currSkin = editor.GetBlockSkin(State::selectedBlock); 
-                } catch {}
+                } catch {
+                    Logging::Debug("Failed to get block skin for preview");
+                }
                 
                 if (currSkin.Length > 0) {
                     skinFile = string(currSkin);

@@ -1,6 +1,12 @@
 class CopyGalleryButton : GalleryButton {
     CopyGalleryButton() {
         width = 32.0f;
+        label = Icons::Clipboard;
+        backgroundColor = Colors::GALLERY_BUTTON_BG_SEMI;
+        textColor = Colors::SHADE_WHITE;
+        fontSize = 1.0f;
+        tooltip = "copy URL";
+        iconColor = Colors::SHADE_WHITE;
     }
     
     bool OnClick(MediaItem@ item, uint index) override {
@@ -14,40 +20,8 @@ class CopyGalleryButton : GalleryButton {
         return true;
     }
     
-    string GetLabel(MediaItem@ item, uint index) override {
-        return Icons::Clipboard;
-    }
-    
     bool IsEnabled(MediaItem@ item, uint index) override {
         return (item !is null && item.key.Length > 0);
-    }
-    
-    float GetWidth(MediaItem@ item, uint index) override {
-        return width;
-    }
-    
-    vec4 GetBackgroundColor(MediaItem@ item, uint index) override {
-        return Colors::GALLERY_BUTTON_BG_SEMI;
-    }
-    
-    vec4 GetTextColor(MediaItem@ item, uint index) override {
-        return Colors::SHADE_WHITE;
-    }
-    
-    float GetFontSize(MediaItem@ item, uint index) override {
-        return 1.0f;
-    }
-    
-    string GetTooltip(MediaItem@ item, uint index) override {
-        return "copy URL";
-    }
-    
-    vec4 GetIconColor(MediaItem@ item, uint index) override {
-        return Colors::SHADE_WHITE;
-    }
-    
-    bool IsIconTopRight(MediaItem@ item, uint index) override {
-        return false;
     }
 }
 

@@ -1,90 +1,65 @@
 namespace BlockExtractor {
     void ExtractSkinningProperties(CGameCtnBlock@ block, CGameCtnEditorFree@ editor) {
-        if (block is null || editor is null) {
-            return;
-        }
-        
         auto@ pluginMap = cast<CGameEditorPluginMap>(editor.PluginMapType);
-        if (pluginMap is null) {
-            return;
-        }
-        
         auto@ blockModel = block.BlockModel;
-        if (blockModel is null) {
-            return;
+        if (pluginMap is null || blockModel is null) return;
+    
+        string blockColorString = "";
+        try { blockColorString = tostring(pluginMap.GetMapElemColorBlock(block)); } catch {
+            Logging::Debug("Failed to get block color");
         }
-        
-        // Cache string conversions to avoid repeated allocations
-        string colorStr = "";
-        try {
-            colorStr = tostring(pluginMap.GetMapElemColorBlock(block));
-            if (colorStr.Length > 0) {
-                State::skinningProperties["BlockColor"] = colorStr;
-            }
-        } catch {}
-        
-        string nextColorStr = "";
-        try {
-            nextColorStr = tostring(pluginMap.NextMapElemColor);
-            if (nextColorStr.Length > 0) {
-                State::skinningProperties["NextMapElemColor"] = nextColorStr;
-            }
-        } catch {}
-        
-        string qualityStr = "";
-        try {
-            qualityStr = tostring(pluginMap.NextMapElemLightmapQuality);
-            if (qualityStr.Length > 0) {
-                State::skinningProperties["NextMapElemLightmapQuality"] = qualityStr;
-            }
-        } catch {}
-        
+        State::skinningProperties["BlockColor"] = blockColorString;
+    
+        string nextMapElementColorString = "";
+        try { nextMapElementColorString = tostring(pluginMap.NextMapElemColor); } catch {
+            Logging::Debug("Failed to get next map element color");
+        }
+        State::skinningProperties["NextMapElemColor"] = nextMapElementColorString;
+    
+        string nextMapElementLightmapQualityString = "";
+        try { nextMapElementLightmapQualityString = tostring(pluginMap.NextMapElemLightmapQuality); } catch {
+            Logging::Debug("Failed to get next map element lightmap quality");
+        }
+        State::skinningProperties["NextMapElemLightmapQuality"] = nextMapElementLightmapQualityString;
+    
         bool isSkinnable = false;
-        try {
-            isSkinnable = pluginMap.IsBlockModelSkinnable(blockModel);
-        } catch {}
-        
+        try { isSkinnable = pluginMap.IsBlockModelSkinnable(blockModel); } catch {
+            Logging::Debug("Failed to check if block model is skinnable");
+        }
         State::skinningProperties["IsSkinnable"] = isSkinnable ? "Yes" : "No";
-        
-        if (isSkinnable) {
-            uint skinCount = 0;
-            try {
-                skinCount = pluginMap.GetNbBlockModelSkins(blockModel);
-            } catch {}
-            
-            // Cache string conversion
-            string skinCountStr = "";
-            try {
-                skinCountStr = tostring(skinCount);
-                State::skinningProperties["SkinCount"] = skinCountStr;
-            } catch {}
-            
-            if (skinCount > 0) {
-                // Use array to build skin list efficiently, then join once
-                array<string> skinNames;
-                for (uint i = 0; i < skinCount; i++) {
-                    try {
-                        string skinName = pluginMap.GetBlockModelSkin(blockModel, i);
-                        if (skinName.Length > 0) {
-                            skinNames.InsertLast(skinName);
-                        }
-                    } catch {}
-                }
-                
-                if (skinNames.Length > 0) {
-                    // Build string once instead of repeated concatenation
-                    string skinList = "";
-                    for (uint i = 0; i < skinNames.Length; i++) {
-                        if (i > 0) {
-                            skinList += ", ";
-                        }
-                        skinList += skinNames[i];
-                    }
-                    State::skinningProperties["AvailableSkins"] = skinList;
+    
+        if (!isSkinnable) return;
+    
+        uint skinCount = 0;
+        try { skinCount = pluginMap.GetNbBlockModelSkins(blockModel); } catch {
+            Logging::Debug("Failed to get block model skin count");
+        }
+    
+        string skinCountString = "";
+        try { skinCountString = tostring(skinCount); } catch {
+            Logging::Debug("Failed to convert skin count to string");
+        }
+        State::skinningProperties["SkinCount"] = skinCountString;
+    
+        if (skinCount > 0) {
+            array<string> skinNames;
+            for (uint i = 0; i < skinCount; i++) {
+                try {
+                    string skinName = pluginMap.GetBlockModelSkin(blockModel, i);
+                    skinNames.InsertLast(skinName);
+                } catch {
+                    Logging::Debug("Failed to get block model skin at index " + i);
                 }
             }
-            
-            SkinExtractor::ExtractBlockSkinProperties(block);
+    
+            string skinListString = "";
+            for (uint i = 0; i < skinNames.Length; i++) {
+                if (i > 0) skinListString += ", ";
+                skinListString += skinNames[i];
+            }
+            State::skinningProperties["AvailableSkins"] = skinListString;
         }
+    
+        SkinExtractor::ExtractBlockSkinProperties(block);    
     }
 }

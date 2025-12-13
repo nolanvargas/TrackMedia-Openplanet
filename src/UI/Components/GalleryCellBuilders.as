@@ -65,8 +65,86 @@ namespace GalleryCellBuilders {
                 data.imageState = ImageState::Type::Loading;
             }
         }
+
+        // Prepare optional animation frames when thumb_key is a webm-based thumbnail.
+        // These map to /thumbs/{id}/1.webp .. 3.webp and will be used once webp is supported.
+        UpdateMediaItemAnimationFrames(data, item);
+    }
+
+    string GetThumbIdFromKey(const string &in thumbKey) {
+        if (thumbKey.Length == 0) return "";
+
+        string key = thumbKey;
+        // Normalize by removing a leading slash (avoid direct indexing to prevent type issues)
+        if (key.Length > 0 && key.SubStr(0, 1) == "/") {
+            key = key.SubStr(1);
+        }
+
+        // Remove "thumbs/" prefix if present
+        if (key.StartsWith("thumbs/")) {
+            key = key.SubStr(7);
+        }
+
+        // Strip a ".webm" extension if present
+        if (key.Length > 5) {
+            string ext = key.SubStr(key.Length - 5);
+            if (ext == ".webm") {
+                key = key.SubStr(0, key.Length - 5);
+            }
+        }
+
+        // Guard against empty results
+        if (key.Length == 0) return "";
+        return key;
+    }
+
+    void UpdateMediaItemAnimationFrames(GalleryCellData@ data, MediaItem@ item) {
+        if (data is null || item is null) return;
+        if (item.thumbKey.Length == 0) return;
+
+        // Only apply this to webm-based thumb keys; these map to 3 webp frames.
+        if (!FileUtils::IsFileType(item.thumbKey, "webm")) {
+            return;
+        }
+
+        string thumbId = GetThumbIdFromKey(item.thumbKey);
+        if (thumbId.Length == 0) return;
+
+        // Mark that this cell can use animation frames.
+        data.hasAnimationFrames = true;
+        if (data.animationFrames.Length != 3) {
+            data.animationFrames.Resize(3);
+            for (uint i = 0; i < data.animationFrames.Length; i++) {
+                @data.animationFrames[i] = null;
+            }
+            data.animationCurrentFrame = 0;
+            data.animationLastSwitchTime = 0;
+        }
+
+        bool anyFrameLoaded = false;
+        for (uint i = 0; i < 3; i++) {
+            string framePath = "thumbs/" + thumbId + "/" + (i + 1) + ".webp";
+            string url = "https://cdn.trackmedia.io/" + framePath;
+
+            CachedImage@ cached = Images::FindExisting(url);
+            if (cached is null) {
+                @cached = Images::CachedFromURL(url);
+            }
+
+            if (cached !is null && cached.texture !is null) {
+                @data.animationFrames[i] = cached.texture;
+                anyFrameLoaded = true;
+            }
+        }
+
+        // Once any frame is successfully loaded (when webp is supported),
+        // treat the image as loaded so the animation will render instead of a placeholder.
+        if (anyFrameLoaded) {
+            data.imageState = ImageState::Type::Loaded;
+        }
     }
     
+    // Builds cell data from a media item. If items array is provided, button adapters will use it for context.
     GalleryCellData@ BuildFromMediaItem(MediaItem@ item, uint index, GalleryButton@ button, array<MediaItem@>@ items = null) {
         if (item is null) return null;
         
@@ -147,6 +225,7 @@ namespace GalleryCellBuilders {
         }
     }
     
+    // Builds cell data from a collection. If collections array is provided, button adapters will use it for context.
     GalleryCellData@ BuildFromCollection(Collection@ collection, uint index, CollectionGalleryButton@ button, array<Collection@>@ collections = null) {
         if (collection is null) return null;
         
@@ -222,6 +301,7 @@ namespace GalleryCellBuilders {
         }
     }
     
+    // Builds cell data from a theme pack. If themePacks array is provided, button adapters will use it for context.
     GalleryCellData@ BuildFromThemePack(ThemePack@ themePack, uint index, ThemePackGalleryButton@ button, array<ThemePack@>@ themePacks = null) {
         if (themePack is null) return null;
         

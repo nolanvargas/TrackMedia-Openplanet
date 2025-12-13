@@ -15,6 +15,12 @@ namespace ThemePacksPage {
                 RenderGrid();
                 return;
             } else {
+                // Ensure data is requested for theme pack tabs before rendering
+                ThemePackTab@ themePackTab = cast<ThemePackTab>(activeTab);
+                if (themePackTab !is null) {
+                    themePackTab.EnsureDataRequested();
+                }
+                
                 activeTab.PushTabStyle(State::themePacksActiveTabIndex);
                 activeTab.Render();
                 activeTab.PopTabStyleWithText();

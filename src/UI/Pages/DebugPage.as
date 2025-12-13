@@ -1,9 +1,7 @@
 namespace DebugPage {
     void Render() {
         UI::Separator();
-        
-        // --- Content from HomePageTabRender::Home() ---
-        
+                
         // Left column for block or item properties
         string blockLabel = State::currentBlockName;
         string itemLabel = State::currentItemName;
@@ -35,8 +33,6 @@ namespace DebugPage {
         UI::Separator();
         UI::Text("Skin Manager");
         UI::Separator();
-
-        // --- Content from SkinManagerWindow::Render() ---
         
         // Block section
         if (State::selectedBlock !is null) {

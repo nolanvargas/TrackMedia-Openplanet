@@ -1,10 +1,18 @@
 namespace UIWindow {
     class Navigation {
         string m_activePage = "Home";
+        
+        void SetActivePage(const string &in pageId) {
+            m_activePage = pageId;
+        }
+        
+        string GetActivePage() {
+            return m_activePage;
+        }
 
         void Render(float width, float height) {
             UI::PushStyleColor(UI::Col::ChildBg, Colors::HEADER_BG);
-            UI::BeginChild("Navigation", vec2(width, height), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoMove);
+            UI::BeginChild("Navigation", vec2(width, height), false, UI::WindowFlags::NoScrollbar);
             
             float navXOffset = 28.0f;
             float verticalPadding = 22.0f;
