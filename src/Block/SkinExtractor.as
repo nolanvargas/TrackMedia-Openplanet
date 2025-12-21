@@ -1,35 +1,26 @@
 namespace SkinExtractor {
-    void ExtractBlockSkinProperties(CGameCtnBlock@ block) {
-    if (block is null) return;
-    
+    void ExtractBlockSkinProperties(CGameCtnBlock@ block) {    
         auto@ blockSkin = cast<CGameCtnBlockSkin>(block.Skin);
         if (blockSkin is null) return;
     
-        string skinIdName = blockSkin.IdName;
-        State::skinningProperties["Skin.IdName"] = skinIdName;
+        State::skinningProperties["Skin.IdName"] = blockSkin.IdName;
     
         auto@ packDescriptor = blockSkin.PackDesc;
         if (packDescriptor !is null) {
-            string packDescriptorName = packDescriptor.Name;
-            State::skinningProperties["Skin.PackDesc.Name"] = packDescriptorName;
-            string packDescriptorUrl = packDescriptor.Url;
-            State::skinningProperties["Skin.PackDesc.Url"] = packDescriptorUrl;
+            State::skinningProperties["Skin.PackDesc.Name"] = packDescriptor.Name;
+            State::skinningProperties["Skin.PackDesc.Url"] = packDescriptor.Url;
         }
     
         auto@ parentPackDescriptor = blockSkin.ParentPackDesc;
         if (parentPackDescriptor !is null) {
-            string parentPackDescriptorName = parentPackDescriptor.Name;
-            State::skinningProperties["Skin.ParentPackDesc.Name"] = parentPackDescriptorName;
-            string parentPackDescriptorUrl = parentPackDescriptor.Url;
-            State::skinningProperties["Skin.ParentPackDesc.Url"] = parentPackDescriptorUrl;
+            State::skinningProperties["Skin.ParentPackDesc.Name"] = parentPackDescriptor.Name;
+            State::skinningProperties["Skin.ParentPackDesc.Url"] = parentPackDescriptor.Url;
         }
     
         auto@ foregroundPackDescriptor = blockSkin.ForegroundPackDesc;
         if (foregroundPackDescriptor !is null) {
-            string foregroundPackDescriptorName = foregroundPackDescriptor.Name;
-            State::skinningProperties["Skin.ForegroundPackDesc.Name"] = foregroundPackDescriptorName;
-            string foregroundPackDescriptorUrl = foregroundPackDescriptor.Url;
-            State::skinningProperties["Skin.ForegroundPackDesc.Url"] = foregroundPackDescriptorUrl;
+            State::skinningProperties["Skin.ForegroundPackDesc.Name"] = foregroundPackDescriptor.Name;
+            State::skinningProperties["Skin.ForegroundPackDesc.Url"] = foregroundPackDescriptor.Url;
         }
     }
 }
