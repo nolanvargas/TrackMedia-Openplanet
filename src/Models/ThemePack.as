@@ -15,6 +15,8 @@ class ThemePack {
         FromJson(json);
     }
 
+    // Error checking each becuase the API is still being worked on, so I need to know when a value changes type or is missing
+    // OpenAPI spec is underway
     void FromJson(Json::Value@ json) {
         if (json is null) {
             Logging::Warn("ThemePack::FromJson called with null JSON");

@@ -13,21 +13,19 @@ namespace Logging {
     const string PLUGIN_NAME = "TrackMedia";
 
     void Error(const string &in msg, bool showNotification = false) {
-        if (Setting_LogLevel >= LogLevel::Error) {
-            if (showNotification) {
-                UI::ShowNotification(Icons::Kenney::ButtonTimes + " " + PLUGIN_NAME + " - Error", msg, UI::HSV(1.0, 1.0, 1.0), 8000);
-            }
-            error("[TrackMedia] " + msg);
+        if (Setting_LogLevel < LogLevel::Error) return;
+        if (showNotification) {
+            UI::ShowNotification(Icons::Kenney::ButtonTimes + " " + PLUGIN_NAME + " - Error", msg, UI::HSV(1.0, 1.0, 1.0), 8000);
         }
+        error("[TrackMedia] " + msg);
     }
 
     void Warn(const string &in msg, bool showNotification = false) {
-        if (Setting_LogLevel >= LogLevel::Warn) {
-            if (showNotification) {
-                UI::ShowNotification(Icons::Kenney::ButtonTimes + " " + PLUGIN_NAME + " - Warning", msg, UI::HSV(0.11, 1.0, 1.0), 5000);
-            }
-            warn("[TrackMedia] " + msg);
+        if (Setting_LogLevel < LogLevel::Warn) return;
+        if (showNotification) {
+            UI::ShowNotification(Icons::Kenney::ButtonTimes + " " + PLUGIN_NAME + " - Warning", msg, UI::HSV(0.11, 1.0, 1.0), 5000);
         }
+        warn("[TrackMedia] " + msg);
     }
 
     void Info(const string &in msg) {

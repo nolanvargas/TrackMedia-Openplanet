@@ -10,12 +10,8 @@ namespace API {
 
     Json::Value GetAsync(const string &in url) {
         auto req = Get(url);
-        if (req is null) {
-            return Json::Value();
-        }
-        while (!req.Finished()) {
-            yield();
-        }
+        if (req is null) return Json::Value();
+        while (!req.Finished()) yield();
         int responseCode = req.ResponseCode();
         if (responseCode != 200) {
             Logging::Error("HTTP request failed: " + url + " (code: " + responseCode + ")");
