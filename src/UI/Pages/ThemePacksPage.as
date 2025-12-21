@@ -6,26 +6,15 @@ namespace ThemePacksPage {
             startnew(ThemePacksApiService::RequestThemePacks);
         }
 
-        ThemePacksPageTabManager::RenderTabBar();
+        State::themePacksTabSystem.RenderTabBar("ThemePackTabs", "Theme Packs");
         UI::Separator();
         
-        if (State::themePacksActiveTabIndex >= 0 && State::themePacksActiveTabIndex < int(State::themePacksTabs.Length)) {
-            Tab@ activeTab = State::themePacksTabs[State::themePacksActiveTabIndex];
-            if (State::themePacksActiveTabIndex == 0) {
-                RenderGrid();
-                return;
-            } else {
-                // Ensure data is requested for theme pack tabs before rendering
-                ThemePackTab@ themePackTab = cast<ThemePackTab>(activeTab);
-                if (themePackTab !is null) {
-                    themePackTab.EnsureDataRequested();
-                }
-                
-                activeTab.PushTabStyle(State::themePacksActiveTabIndex);
-                activeTab.Render();
-                activeTab.PopTabStyleWithText();
-                return;
-            }
+        Tab@ activeTab = State::themePacksTabSystem.GetActiveTab();
+        if (activeTab !is null && !State::themePacksTabSystem.IsPageTabActive()) {
+            activeTab.PushTabStyle(State::themePacksTabSystem.activeIndex);
+            activeTab.Render();
+            activeTab.PopTabStyleWithText();
+            return;
         }
         
         RenderGrid();

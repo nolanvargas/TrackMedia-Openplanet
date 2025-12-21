@@ -5,26 +5,15 @@ namespace CollectionsPage {
             startnew(CollectionsApiService::RequestCollections);
         }
 
-        CollectionsPageTabManager::RenderTabBar();
+        State::collectionsTabSystem.RenderTabBar("CollectionTabs", "Collections");
         UI::Separator();
         
-        if (State::collectionsActiveTabIndex >= 0 && State::collectionsActiveTabIndex < int(State::collectionsTabs.Length)) {
-            Tab@ activeTab = State::collectionsTabs[State::collectionsActiveTabIndex];
-            if (State::collectionsActiveTabIndex == 0) {
-                RenderGrid();
-                return;
-            } else {
-                // Ensure data is requested for collection tabs before rendering
-                CollectionTab@ collectionTab = cast<CollectionTab>(activeTab);
-                if (collectionTab !is null) {
-                    collectionTab.EnsureDataRequested();
-                }
-                
-                activeTab.PushTabStyle(State::collectionsActiveTabIndex);
-                activeTab.Render();
-                activeTab.PopTabStyleWithText();
-                return;
-            }
+        Tab@ activeTab = State::collectionsTabSystem.GetActiveTab();
+        if (activeTab !is null && !State::collectionsTabSystem.IsPageTabActive()) {
+            activeTab.PushTabStyle(State::collectionsTabSystem.activeIndex);
+            activeTab.Render();
+            activeTab.PopTabStyleWithText();
+            return;
         }
         
         RenderGrid();

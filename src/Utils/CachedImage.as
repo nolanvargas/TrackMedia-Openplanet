@@ -6,23 +6,10 @@ class CachedImage {
     bool notFound = false;
     bool unsupportedFormat = false;
 
-    void fail(const string &in msg) {
-        error = true;
-        Logging::Warn(msg + " " + url);
-    }
-
-    void loadTexture(Net::HttpRequest@ req) {
-        req.Buffer().Seek(0);
-        @texture = UI::LoadTexture(req.Buffer());
-        if (texture is null || texture.GetSize().x == 0) {
-            @texture = null;
-            fail("CachedImage: Failed to load texture from");
-        }
-    }
-
     void DownloadFromURLAsync() {
         if (url.Length == 0) {
-            fail("CachedImage: Empty URL");
+            error = true;
+            Logging::Warn("CachedImage: Empty URL " + url);
             return;
         }
 
@@ -33,7 +20,8 @@ class CachedImage {
 
         Net::HttpRequest@ req = API::Get(url);
         if (req is null) {
-            fail("CachedImage: Could not create request for");
+            error = true;
+            Logging::Warn("CachedImage: Could not create request for " + url);
             return;
         }
 
@@ -42,11 +30,18 @@ class CachedImage {
         responseCode = req.ResponseCode();
         if (responseCode != 200) {
             notFound = responseCode == 404;
-            fail("CachedImage: HTTP " + responseCode + " for");
+            error = true;
+            Logging::Warn("CachedImage: HTTP " + responseCode + " for " + url);
             return;
         }
 
-        loadTexture(req);
+        req.Buffer().Seek(0);
+        @texture = UI::LoadTexture(req.Buffer());
+        if (texture is null || texture.GetSize().x == 0) {
+            @texture = null;
+            error = true;
+            Logging::Warn("CachedImage: Failed to load texture from " + url);
+        }
     }
 }
 
@@ -54,21 +49,15 @@ namespace Images {
     dictionary g_cachedImages;
 
     CachedImage@ FindExisting(const string &in url) {
-        if (url.Length == 0) return null;
         CachedImage@ img;
         g_cachedImages.Get(url, @img);
         return img;
     }
 
     CachedImage@ CachedFromURL(const string &in url) {
-        if (url.Length == 0) {
-            Logging::Warn("Images::CachedFromURL called with empty URL");
-            return null;
-        }
-
-        auto existing = FindExisting(url);
+        CachedImage@ existing;
+        g_cachedImages.Get(url, @existing);
         if (existing !is null) return existing;
-
         auto created = CachedImage();
         created.url = url;
         g_cachedImages.Set(url, @created);
@@ -77,9 +66,6 @@ namespace Images {
     }
 
     bool IsUnsupportedType(CachedImage@ cached, const string &in ext) {
-        if (cached is null) return false;
-        if (!cached.unsupportedFormat) return false;
-        if (cached.texture !is null) return false;
-        return FileUtils::IsFileType(cached.url, ext);
+        return cached !is null && cached.unsupportedFormat && cached.texture is null && FileUtils::IsFileType(cached.url, ext);
     }
 }

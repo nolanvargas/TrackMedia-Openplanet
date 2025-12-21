@@ -1,4 +1,14 @@
 namespace EditorMonitor {
+    void SetSelectedBlock(CGameCtnBlock@ block) {
+        if (State::selectedBlock is block) return;
+        @State::selectedBlock = block;
+    }
+    
+    void SetSelectedItem(CGameCtnEditorScriptAnchoredObject@ item) {
+        if (State::selectedItem is item) return;
+        @State::selectedItem = item;
+    }
+    
     void UpdateEditorState() {
         auto editor = cast<CGameCtnEditorFree>(GetApp().Editor);
         if (editor is null) {
@@ -11,7 +21,6 @@ namespace EditorMonitor {
         auto@ mapType = cast<CGameEditorPluginMapMapType>(editor.PluginMapType);
         if (mapType is null) {
             State::showUI = false;
-            State::currentBlockName = "";
             State::skinningProperties.DeleteAll();
             return;
         }
@@ -23,7 +32,6 @@ namespace EditorMonitor {
         
         if (placeModeStr != "Skin") {
             State::showUI = false;
-            State::currentBlockName = "";
             State::skinningProperties.DeleteAll();
             return;
         }
@@ -48,42 +56,21 @@ namespace EditorMonitor {
     }
 
     void HandleBlockSelection(CGameCtnBlock@ block, CGameCtnEditorFree@ editor) {
-        if (block is null || block.BlockModel is null) {
-            State::currentBlockName = "";
-            State::skinningProperties.DeleteAll();
-            SkinManager::SetSelectedBlock(null);
-            return;
-        }
-        
-        State::currentBlockName = block.BlockModel.IdName;
-        State::currentItemName = "";
         State::skinningProperties.DeleteAll();
-        BlockExtractor::ExtractSkinningProperties(block, editor);
-        SkinManager::SetSelectedBlock(block);
-        SkinManager::SetSelectedItem(null);
+        EditorUtils::ExtractSkinningProperties(block, editor);
+        SetSelectedBlock(block);
+        SetSelectedItem(null);
     }
 
     void HandleItemSelection(CGameCtnAnchoredObject@ item, CGameCtnEditorFree@ editor) {
-        if (item is null || item.ItemModel is null) {
-            State::currentItemName = "";
-            State::skinningProperties.DeleteAll();
-            SkinManager::SetSelectedItem(null);
-            return;
-        }
-        
-        State::currentItemName = item.ItemModel.IdName;
-        State::currentBlockName = "";
         State::skinningProperties.DeleteAll();
-        ItemExtractor::ExtractSkinningProperties(item, editor);
-        SkinManager::SetSelectedItem(cast<CGameCtnEditorScriptAnchoredObject>(item));
-        SkinManager::SetSelectedBlock(null);
+        SetSelectedItem(cast<CGameCtnEditorScriptAnchoredObject>(item));
+        SetSelectedBlock(null);
     }
 
     void ClearSelection() {
-        State::currentBlockName = "";
-        State::currentItemName = "";
         State::skinningProperties.DeleteAll();
-        SkinManager::SetSelectedBlock(null);
-        SkinManager::SetSelectedItem(null);
+        SetSelectedBlock(null);
+        SetSelectedItem(null);
     }
 }

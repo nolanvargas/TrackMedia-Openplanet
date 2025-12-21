@@ -1,4 +1,18 @@
 namespace TabManager {
+    string GetTabDisplayName(Tab@ tab) {
+        CollectionTab@ cTab = cast<CollectionTab>(tab);
+        if (cTab !is null) {
+            Collection@ c = cTab.GetCollection();
+            return c !is null ? c.collectionName : "";
+        }
+        ThemePackTab@ pTab = cast<ThemePackTab>(tab);
+        if (pTab !is null) {
+            ThemePack@ p = pTab.GetThemePack();
+            return p !is null ? p.packName : "";
+        }
+        return "";
+    }
+    
     void RenderPinButton(Tab@ tab, uint i) {
         if (!tab.canClose || i == 0) return;
     
@@ -23,21 +37,7 @@ namespace TabManager {
                 
                 if (!wasPinned) {
                     // Pinning: get the name from the tab
-                    string name = "";
-                    if (isCollection) {
-                        Collection@ c = collectionTab.GetCollection();
-                        if (c !is null) {
-                            name = c.collectionName;
-                        }
-                    } else {
-                        ThemePackTab@ themePackTab = cast<ThemePackTab>(tab);
-                        if (themePackTab !is null) {
-                            ThemePack@ themePack = themePackTab.GetThemePack();
-                            if (themePack !is null) {
-                                name = themePack.packName;
-                            }
-                        }
-                    }
+                    string name = GetTabDisplayName(tab);
                     PinnedTabsStorage::PinTab(tabId, name, isCollection);
                 } else {
                     // Unpinning
@@ -64,15 +64,15 @@ namespace TabManager {
         UI::PopStyleColor();
     }
     
-    void RenderTabBar(array<Tab@>@ tabs, int active, bool force, const string &in id,
-        int&out newActive, bool&out newForce) {
+    void RenderTabBar(array<Tab@>@ tabs, int active, const string &in id,
+        int&out newActive, bool&out forceSelection) {
 
         int cur = active;
         if (cur < 0 || cur >= int(tabs.Length)) cur = 0;
 
         if (tabs.Length == 0) {
             newActive = cur;
-            newForce = false;
+            forceSelection = false;
             return;
         }
 
@@ -87,19 +87,18 @@ namespace TabManager {
             if (t is null) continue;
 
             string label = t.GetLabel();
-            if (label.Length == 0) label = "Tab " + i;
-            if (t.canClose && i > 0) label += "    ";
+            if (t.canClose && i > 0) label += "    "; // leave space for pin
 
             bool useIndex = t.canClose && i > 0;
             if (useIndex) t.PushTabStyle(i);
             else t.PushTabStyle();
 
-            UI::TabItemFlags f = (force && int(i) == cur)
+            UI::TabItemFlags flags = (forceSelection && int(i) == cur)
             ? UI::TabItemFlags::SetSelected
             : UI::TabItemFlags::None;
 
             bool open = true;
-            if (UI::BeginTabItem(label, open, f)) {
+            if (UI::BeginTabItem(label, open, flags)) {
                 if (selected < 0) selected = int(i);
                 UI::EndTabItem();
             }
@@ -123,18 +122,19 @@ namespace TabManager {
         UI::PopStyleVar();
 
         newActive = cur;
-        newForce = false;
+        forceSelection = false;
     }
 
     // Open a tab by ID - finds existing tab or creates new one
     // Returns true if tab was opened/activated, false if newTab is null
-    bool OpenTab(array<Tab@>@ tabs, int active, bool force,
+    // Sets forceSelection to true if a tab was opened/activated programmatically
+    bool OpenTab(array<Tab@>@ tabs, int active,
         const string &in id, Tab@ tab, uint max,
-        int&out newActive, bool&out newForce) {
+        int&out newActive, bool&out forceSelection) {
 
             if (tab is null) {
                 newActive = active;
-                newForce = force;
+                forceSelection = false;
                 return false;
             }
 
@@ -144,7 +144,7 @@ namespace TabManager {
                     Tab@ t = tabs[i];
                     if (t !is null && t.GetTabId() == id) {
                         newActive = int(i);
-                        newForce = true;
+                        forceSelection = true;
                         return true;
                     }
                 }
@@ -157,9 +157,10 @@ namespace TabManager {
                 cur = int(tabs.Length - 1);
 
                 newActive = cur;
-                newForce = true;
+                forceSelection = true;
                 return true;
             }
+            
 
     void CloseTab(array<Tab@>@ tabs, int active, int idx, int&out outActive) {
         if (idx <= 0 || idx >= int(tabs.Length)) {

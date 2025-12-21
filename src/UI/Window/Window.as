@@ -13,6 +13,20 @@ namespace UIWindow {
             m_navigation.SetActivePage(pageId);
         }
     }
+    
+    void RenderBottomSection(float bottomSectionHeight) {
+        UI::PushStyleColor(UI::Col::ChildBg, Colors::BOTTOM_SECTION_BG);
+        UI::BeginChild("BottomSection", vec2(0, bottomSectionHeight), true, UI::WindowFlags::NoScrollbar);
+        if (State::selectedBlock !is null) {
+            vec2 size = UI::GetContentRegionAvail();
+            UI::SetCursorPos(vec2(0, 0));
+            UI::BeginChild("PreviewContainer", size, false, UI::WindowFlags::NoScrollbar);
+            SkinPreviewRenderer::Render(size);
+            UI::EndChild();
+        }
+        UI::EndChild();
+        UI::PopStyleColor();
+    }
 
     void Render() {
         if (!State::isInEditor || !State::showUI) return;
@@ -51,7 +65,7 @@ namespace UIWindow {
                 SectionResizeSlider::Render(buttonY, contentAreaWindowPos, contentHeight);
                 
                 // Bottom section - media preview
-                BottomSection::Render(SectionResizeSlider::GetBottomSectionHeight());
+                RenderBottomSection(SectionResizeSlider::GetBottomSectionHeight());
             }
             UI::EndChild();
             UI::PopStyleColor();
