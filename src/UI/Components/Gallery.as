@@ -11,18 +11,6 @@ namespace Gallery {
         return 4;
     }
     
-    GalleryGrid::Config@ SetupConfig(GalleryGrid::Config@ config, float spacing) {
-        if (config is null) {
-            g_defaultConfig.columns = GetResponsiveColumnCount();
-            g_defaultConfig.itemSpacing = spacing;
-            g_defaultConfig.columnSpacing = spacing;
-            return g_defaultConfig;
-        } else {
-            config.columns = GetResponsiveColumnCount();
-            return config;
-        }
-    }
-    
     void Render(array<MediaItem@>@ items, GalleryGrid::Config@ config = null) {
         if (g_applyButton is null) @g_applyButton = ApplyGalleryButton();
         Render(items, g_applyButton, config);
@@ -33,7 +21,14 @@ namespace Gallery {
             UI::Text("No items to display.");
             return;
         }
-        @config = SetupConfig(config, 8.0f);
+        if (config is null) {
+            g_defaultConfig.columns = GetResponsiveColumnCount();
+            g_defaultConfig.itemSpacing = 8.0f;
+            g_defaultConfig.columnSpacing = 8.0f;
+            @config = g_defaultConfig;
+        } else {
+            config.columns = GetResponsiveColumnCount();
+        }
         GalleryGrid::Render(items, button, config);
     }
     
@@ -47,7 +42,14 @@ namespace Gallery {
             UI::Text("No collections to display.");
             return;
         }
-        @config = SetupConfig(config, 12.0f);
+        if (config is null) {
+            g_defaultConfig.columns = GetResponsiveColumnCount();
+            g_defaultConfig.itemSpacing = 12.0f;
+            g_defaultConfig.columnSpacing = 12.0f;
+            @config = g_defaultConfig;
+        } else {
+            config.columns = GetResponsiveColumnCount();
+        }
         GalleryGrid::Render(collections, button, config);
     }
     
@@ -61,7 +63,14 @@ namespace Gallery {
             UI::Text("No theme packs to display.");
             return;
         }
-        @config = SetupConfig(config, 12.0f);
+        if (config is null) {
+            g_defaultConfig.columns = GetResponsiveColumnCount();
+            g_defaultConfig.itemSpacing = 12.0f;
+            g_defaultConfig.columnSpacing = 12.0f;
+            @config = g_defaultConfig;
+        } else {
+            config.columns = GetResponsiveColumnCount();
+        }
         GalleryGrid::Render(themePacks, button, config);
     }
 }
