@@ -3,33 +3,32 @@ namespace ThemePacksApiService {
         RequestThemePacksWithParams("", 20);
     }
 
-    void RequestThemePacksWithParams(const string &in start = "", int limit = 20) {
+    void RequestThemePacksWithParams(const string &in after = "", int limit = 20) {
         if (limit <= 0) limit = 20;
         State::ResetThemePacksRequest();
         
-        string effectiveStart = start.Length > 0 ? start : API::GenerateUUIDv4();
-        string url = "https://api.trackmedia.io/theme-packs?start=" + effectiveStart + "&limit=" + limit;
-        
-        try {
-            auto json = API::GetAsync(url);
-            State::SetThemePacksSuccess();
-            State::ClearThemePacks();
-            
-            for (uint i = 0; i < json.Length; i++) {
-                try {
-                    ThemePack@ themePack = ThemePack(json[i]);
-                    State::themePacks.InsertLast(themePack);
-                    startnew(ThumbnailService::RequestThumbnailForThemePack, themePack);
-                } catch {
-                    Logging::Error("Failed to parse theme pack " + i + ": " + getExceptionInfo());
-                }
-            }
-            
-            State::hasRequestedThemePacks = true;
-        } catch {
-            State::SetThemePacksError("Error");
-            Logging::Error("Exception in RequestThemePacks: " + getExceptionInfo());
+        string url = API::API_BASE_URL + "/theme-packs?limit=" + limit;
+        if (after.Length > 0) {
+            url += "&after=" + after;
         }
+        
+        auto json = API::GetAsync(url);
+        if (json.GetType() == Json::Type::Null) {
+            State::SetThemePacksError("Error");
+            State::isRequestingThemePacks = false;
+            return;
+        }
+        
+        State::SetThemePacksSuccess();
+        State::ClearThemePacks();
+        
+        for (uint i = 0; i < json.Length; i++) {
+            ThemePack@ themePack = ThemePack(json[i]);
+            State::themePacks.InsertLast(themePack);
+            startnew(ThumbnailService::RequestThumbnailForThemePack, themePack);
+        }
+        
+        State::hasRequestedThemePacks = true;
         
         State::isRequestingThemePacks = false;
     }
@@ -37,12 +36,10 @@ namespace ThemePacksApiService {
     void RequestThemePackById(ThemePack@ themePack) {
         if (themePack is null) return;
         
-        string url = "https://api.trackmedia.io/theme-packs/id/" + themePack.themePackId;
-        try {
-            auto json = API::GetAsync(url);
+        string url = API::API_BASE_URL + "/theme-packs/" + themePack.themePackId;
+        auto json = API::GetAsync(url);
+        if (json.GetType() != Json::Type::Null) {
             themePack.UpdateWithFullData(json);
-        } catch {
-            Logging::Error("Exception in RequestThemePackById: " + getExceptionInfo());
         }
     }
     

@@ -1,26 +1,31 @@
 namespace MediaItemsApiService {
     void RequestMediaItems() {
+        RequestMediaItemsWithParams("", 20);
+    }
+
+    void RequestMediaItemsWithParams(const string &in after = "", int limit = 20) {
         State::ResetMediaItemsRequest();
         
-        try {
-            auto json = API::GetAsync("https://api.trackmedia.io/media/latest");
-            auto itemsArray = json["items"];
-            State::ClearMediaItems();
-            
-            for (uint i = 0; i < itemsArray.Length; i++) {
-                try {
-                    MediaItem@ item = MediaItem(itemsArray[i]);
-                    State::mediaItems.InsertLast(item);
-                } catch {
-                    Logging::Error("Failed to parse media item " + i + ": " + getExceptionInfo());
-                }
-            }
-            
-            State::hasRequestedMediaItems = true;
-        } catch {
-            State::SetMediaItemsError("Error", "Exception: " + getExceptionInfo());
-            Logging::Error("RequestMediaItems exception: " + getExceptionInfo());
+        string url = API::API_BASE_URL + "/media/latest?limit=" + limit;
+        if (after.Length > 0) {
+            url += "&after=" + after;
         }
+        
+        auto json = API::GetAsync(url);
+        if (json.GetType() == Json::Type::Null) {
+            State::SetMediaItemsError("Error", "");
+            State::isRequestingMediaItems = false;
+            return;
+        }
+        
+        State::ClearMediaItems();
+        
+        for (uint i = 0; i < json.Length; i++) {
+            MediaItem@ item = MediaItem(json[i]);
+            State::mediaItems.InsertLast(item);
+        }
+        
+        State::hasRequestedMediaItems = true;
         
         State::isRequestingMediaItems = false;
     }

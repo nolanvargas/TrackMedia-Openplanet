@@ -3,43 +3,40 @@ namespace CollectionsApiService {
         RequestCollectionsWithParams("", 20);
     }
 
-    void RequestCollectionsWithParams(const string &in start = "", int limit = 20) {        
+    void RequestCollectionsWithParams(const string &in after = "", int limit = 20) {        
         State::ResetCollectionsRequest();
         
-        string effectiveStart = start.Length > 0 ? start : API::GenerateUUIDv4();
-        string url = "https://api.trackmedia.io/collections?start=" + effectiveStart + "&limit=" + limit;
-        
-        try {
-            auto json = API::GetAsync(url);
-            State::SetCollectionsSuccess();
-            State::ClearCollections();
-            
-            for (uint i = 0; i < json.Length; i++) {
-                try {
-                    Collection@ collection = Collection(json[i]);
-                    State::collections.InsertLast(collection);
-                    startnew(ThumbnailService::RequestThumbnailForCollection, collection);
-                } catch {
-                    Logging::Error("Failed to parse collection " + i + ": " + getExceptionInfo());
-                }
-            }
-            
-            State::hasRequestedCollections = true;
-        } catch {
-            State::SetCollectionsError("Error");
-            Logging::Error("Exception in RequestCollections: " + getExceptionInfo());
+        string url = API::API_BASE_URL + "/collections?limit=" + limit;
+        if (after.Length > 0) {
+            url += "&after=" + after;
         }
+        
+        auto json = API::GetAsync(url);
+        if (json.GetType() == Json::Type::Null) {
+            State::SetCollectionsError("Error");
+            State::isRequestingCollections = false;
+            return;
+        }
+        
+        State::SetCollectionsSuccess();
+        State::ClearCollections();
+        
+        for (uint i = 0; i < json.Length; i++) {
+            Collection@ collection = Collection(json[i]);
+            State::collections.InsertLast(collection);
+            startnew(ThumbnailService::RequestThumbnailForCollection, collection);
+        }
+        
+        State::hasRequestedCollections = true;
         
         State::isRequestingCollections = false;
     }
     
     void RequestCollectionById(Collection@ collection) {
-        string url = "https://api.trackmedia.io/collections/id/" + collection.collectionId;
-        try {
-            auto json = API::GetAsync(url);
+        string url = API::API_BASE_URL + "/collections/" + collection.collectionId;
+        auto json = API::GetAsync(url);
+        if (json.GetType() != Json::Type::Null) {
             collection.UpdateWithFullData(json);
-        } catch {
-            Logging::Error("Exception in RequestCollectionById: " + getExceptionInfo());
         }
     }
     
