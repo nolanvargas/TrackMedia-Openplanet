@@ -1,0 +1,1730 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"version": "1.0",
+		"title": "trackmedia",
+		"summary": ""
+	},
+	"servers": [
+		{
+			"url": "http://localhost:3000"
+		}
+	],
+	"paths": {
+		"/auth": {
+			"post": {
+				"summary": "Login",
+				"operationId": "login",
+				"parameters": [
+					{
+						"name": "code",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Session created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": {
+											"type": "boolean"
+										},
+										"user_name": {
+											"type": "string"
+										},
+										"account_id": {
+											"type": "string",
+											"format": "uuid"
+										},
+										"expires_at": {
+											"type": "integer",
+											"format": "int64"
+										}
+									},
+									"required": ["success"]
+								}
+							}
+						},
+						"headers": {
+							"Set-Cookie": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/400"
+					},
+					"502": {
+						"$ref": "#/components/responses/502"
+					}
+				},
+				"security": [],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"get": {
+				"summary": "Get session",
+				"operationId": "get_session",
+				"responses": {
+					"200": {
+						"description": "Active session",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"user_name": {
+											"type": "string"
+										},
+										"account_id": {
+											"type": "string",
+											"format": "uuid"
+										},
+										"expires_at": {
+											"type": "integer",
+											"format": "int64"
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/401"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Logout",
+				"operationId": "logout",
+				"responses": {
+					"204": {
+						"description": "Session cleared",
+						"headers": {
+							"Set-Cookie": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/collections": {
+			"get": {
+				"summary": "List collections",
+				"operationId": "list_collections",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "after",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Collections",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/collection"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"post": {
+				"summary": "Create collection",
+				"operationId": "create_collection",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"collection_name": {
+										"type": "string"
+									},
+									"is_unlisted": {
+										"type": "boolean",
+										"default": false
+									}
+								},
+								"required": ["collection_name"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/collection"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/collections/{collection_id}": {
+			"get": {
+				"summary": "Get collection by ID",
+				"operationId": "get_collection",
+				"parameters": [
+					{
+						"name": "collection_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Collection",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/collection_with_items"
+								}
+							}
+						}
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Delete collection",
+				"operationId": "delete_collection",
+				"parameters": [
+					{
+						"name": "collection_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Deleted"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"patch": {
+				"summary": "Update collection",
+				"operationId": "update_collection",
+				"parameters": [
+					{
+						"name": "collection_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"collection_name": {
+										"type": "string"
+									},
+									"cover_id": {
+										"type": "string",
+										"format": "uuid"
+									},
+									"is_unlisted": {
+										"type": "boolean"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "No Content"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/collections/items": {
+			"post": {
+				"summary": "Add to collection",
+				"operationId": "add_collection_item",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"collection_id": {
+										"type": "string",
+										"format": "uuid"
+									},
+									"media_ids": {
+										"type": "array",
+										"items": {
+											"type": "string",
+											"format": "uuid"
+										}
+									}
+								},
+								"required": ["collection_id", "media_id"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Added"
+					},
+					"404": {
+						"description": "Not Found"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Remove from collection",
+				"operationId": "remove_collection_item",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"collection_id": {
+										"type": "string",
+										"format": "uuid"
+									},
+									"media_id": {
+										"type": "string",
+										"format": "uuid"
+									}
+								},
+								"required": ["collection_id", "media_id"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Removed"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/theme-packs": {
+			"get": {
+				"summary": "List theme packs",
+				"operationId": "list_theme_packs",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "after",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Theme packs",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/theme_pack"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"post": {
+				"summary": "Create theme pack",
+				"operationId": "create_theme_pack",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"pack_name": {
+										"type": "string"
+									},
+									"is_unlisted": {
+										"type": "boolean",
+										"default": false
+									}
+								},
+								"required": ["pack_name"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/theme_pack"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/theme-packs/{theme_pack_id}": {
+			"get": {
+				"summary": "Get theme pack by ID",
+				"operationId": "get_theme_pack",
+				"parameters": [
+					{
+						"name": "theme_pack_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Theme pack",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/theme_pack_with_items"
+								}
+							}
+						}
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Delete theme pack",
+				"operationId": "delete_theme_pack",
+				"parameters": [
+					{
+						"name": "theme_pack_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Deleted"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"patch": {
+				"summary": "Update theme pack",
+				"operationId": "update_theme_pack",
+				"parameters": [
+					{
+						"name": "theme_pack_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"pack_name": {
+										"type": "string"
+									},
+									"is_unlisted": {
+										"type": "boolean"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "No Content"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/theme-packs/items": {
+			"patch": {
+				"summary": "Update theme pack",
+				"operationId": "update_theme_pack_media",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"add": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"media_id": {
+													"type": "string",
+													"format": "uuid"
+												},
+												"sign_size": {
+													"type": "string"
+												},
+												"sign_type": {
+													"type": "string"
+												}
+											}
+										}
+									},
+									"remove": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"media_id": {
+													"$ref": "#/components/schemas/media_id"
+												},
+												"sign_size": {
+													"$ref": "#/components/schemas/sign_size"
+												},
+												"sign_type": {
+													"$ref": "#/components/schemas/sign_type"
+												}
+											}
+										}
+									},
+									"theme_pack_id": {
+										"type": "string",
+										"format": "uuid"
+									}
+								},
+								"required": ["theme_pack_id"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Updated"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/media/latest": {
+			"get": {
+				"summary": "Latest media",
+				"description": "Client will need to get last evaluated key from the `uploaded_at` property of the last item in the response",
+				"operationId": "get_latest_media",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "after",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Media",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/media_item"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/media/{media_id}": {
+			"patch": {
+				"summary": "Update media",
+				"operationId": "update_media",
+				"parameters": [
+					{
+						"name": "media_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"is_unlisted": {
+										"type": "boolean"
+									},
+									"sign_type": {
+										"type": "string"
+									},
+									"sign_size": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Updated"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Delete media",
+				"operationId": "delete_media",
+				"parameters": [
+					{
+						"name": "media_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Deleted"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"get": {
+				"summary": "Get media",
+				"operationId": "get_media",
+				"parameters": [
+					{
+						"name": "media_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/media_item"
+								}
+							}
+						}
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/media/uploads": {
+			"get": {
+				"summary": "Get uploaded media",
+				"operationId": "get_uploaded_media",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "number"
+						}
+					},
+					{
+						"name": "after",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/media_item"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/media/liked": {
+			"get": {
+				"summary": "Get liked media",
+				"operationId": "get_liked_media",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"schema": {
+							"type": "number"
+						}
+					},
+					{
+						"name": "after",
+						"in": "query",
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/media_item"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/like/{media_id}": {
+			"put": {
+				"summary": "Like media",
+				"operationId": "like_media",
+				"parameters": [
+					{
+						"name": "media_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Liked"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			},
+			"delete": {
+				"summary": "Unlike media",
+				"operationId": "unlike_media",
+				"parameters": [
+					{
+						"name": "media_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Unliked"
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/search": {
+			"get": {
+				"summary": "Search",
+				"operationId": "search",
+				"parameters": [
+					{
+						"name": "q",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "sign_type",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "sign_size",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Search results",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"media": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/media_item"
+											}
+										},
+										"collections": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/collection"
+											}
+										},
+										"theme_packs": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/theme_pack"
+											}
+										},
+										"users": {
+											"type": "array",
+											"items": {
+												"type": "string"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/forms": {
+			"post": {
+				"summary": "Submit form",
+				"operationId": "submit_form",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"type": {
+										"type": "string"
+									},
+									"name": {
+										"type": "string"
+									},
+									"email": {
+										"type": "string"
+									},
+									"message": {
+										"type": "string"
+									},
+									"bug_data": {
+										"type": "string"
+									},
+									"reason": {
+										"type": "string"
+									},
+									"content_url": {
+										"type": "string"
+									}
+								},
+								"required": ["type"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"204": {
+						"description": "Submitted"
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/config-uploads": {
+			"post": {
+				"summary": "Configure uploads",
+				"operationId": "configure_uploads",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"updates": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "string"
+												},
+												"signType": {
+													"type": "string"
+												},
+												"signSize": {
+													"type": "string"
+												},
+												"isUnlisted": {
+													"type": "boolean"
+												},
+												"collectionIDs": {
+													"type": "array",
+													"items": {
+														"type": "string",
+														"format": "uuid"
+													}
+												},
+												"themePackIDs": {
+													"type": "array",
+													"items": {
+														"type": "string",
+														"format": "uuid"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"202": {
+						"description": "Accepted"
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/req-upload": {
+			"post": {
+				"summary": "Request uploads",
+				"operationId": "request_uploads",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"files": {
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"id": {
+													"type": "string",
+													"format": "uuid"
+												},
+												"filename": {
+													"type": "string"
+												},
+												"type": {
+													"type": "string",
+													"description": "ContentType"
+												},
+												"size": {
+													"type": "number"
+												}
+											},
+											"required": ["id", "filename", "type", "size"]
+										}
+									}
+								},
+								"required": ["files"]
+							}
+						}
+					}
+				},
+				"responses": {
+					"202": {
+						"description": "Accepted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"files": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"status": {
+														"type": "integer",
+														"enum": [400, 500, 200]
+													},
+													"message": {
+														"type": "string",
+														"description": "only if non 200 status"
+													},
+													"url": {
+														"type": "string",
+														"description": "S3 presigned url\r\n"
+													},
+													"filename": {
+														"type": "string"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		},
+		"/user/{user_id}": {
+			"get": {
+				"summary": "Get user media",
+				"operationId": "get_user_media",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "OK",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"media": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/media_item"
+											}
+										},
+										"collections": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/collection"
+											}
+										},
+										"theme_packs": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/theme_pack"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"$ref": "#/components/responses/404"
+					}
+				},
+				"security": [
+					{},
+					{
+						"SessionCookie": []
+					}
+				],
+				"servers": [
+					{
+						"url": "http://localhost:3000"
+					}
+				]
+			}
+		}
+	},
+	"components": {
+		"securitySchemes": {
+			"SessionCookie": {
+				"type": "apiKey",
+				"name": "sid",
+				"in": "cookie"
+			}
+		},
+		"responses": {
+			"400": {
+				"description": "Bad request",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/error"
+						}
+					}
+				}
+			},
+			"401": {
+				"description": "Unauthorized",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/error"
+						}
+					}
+				}
+			},
+			"404": {
+				"description": "Not found",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/error"
+						}
+					}
+				}
+			},
+			"502": {
+				"description": "Bad gateway",
+				"content": {
+					"application/json": {
+						"schema": {
+							"$ref": "#/components/schemas/error"
+						}
+					}
+				}
+			}
+		},
+		"schemas": {
+			"collection": {
+				"type": "object",
+				"properties": {
+					"collection_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"collection_name": {
+						"type": "string"
+					},
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"is_unlisted": {
+						"type": "boolean"
+					},
+					"created_at": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"cover_id": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"user_name": {
+						"type": "string"
+					},
+					"cover_key": {
+						"type": ["string", "null"]
+					},
+					"cover_thumb_key": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"collection_with_items": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/collection"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"items": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/media_item"
+								}
+							}
+						}
+					}
+				]
+			},
+			"media_item": {
+				"type": "object",
+				"properties": {
+					"media_id": {
+						"type": "string",
+						"format": "uuid",
+						"examples": ["ab4f1f3d-a70f-4465-b797-76957946634b"]
+					},
+					"account_id": {
+						"type": "string",
+						"format": "uuid",
+						"examples": ["00000000-0000-0000-0000-000000000000"]
+					},
+					"user_name": {
+						"type": "string",
+						"examples": ["DevUser"]
+					},
+					"key": {
+						"type": "string",
+						"examples": ["media/ab4f1f3d-a70f-4465-b797-76957946634b.jpeg"]
+					},
+					"thumb_key": {
+						"type": "string",
+						"examples": ["thumbs/ab4f1f3d-a70f-4465-b797-76957946634b.webp"]
+					},
+					"uploaded_at": {
+						"type": "integer",
+						"description": "Unix epoch milliseconds",
+						"format": "int64",
+						"examples": [1765663988981]
+					},
+					"sign_type": {
+						"type": "string",
+						"examples": ["left"]
+					},
+					"sign_size": {
+						"type": "string",
+						"examples": ["N/A"]
+					},
+					"file_type": {
+						"type": "string",
+						"examples": ["jpeg"]
+					},
+					"width": {
+						"type": "integer",
+						"format": "int32",
+						"examples": [2048]
+					},
+					"height": {
+						"type": "integer",
+						"format": "int32",
+						"examples": [512]
+					},
+					"liked": {
+						"type": "boolean",
+						"examples": [false]
+					},
+					"collections": {
+						"type": ["array", "null"],
+						"examples": [null],
+						"items": {
+							"type": "object",
+							"properties": {
+								"collection_id": {
+									"type": "string",
+									"format": "uuid"
+								},
+								"collection_name": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"theme_packs": {
+						"type": ["array", "null"],
+						"examples": [null],
+						"items": {
+							"type": "object",
+							"properties": {
+								"theme_pack_id": {
+									"type": "string",
+									"format": "uuid"
+								},
+								"pack_name": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
+			"theme_pack": {
+				"type": "object",
+				"properties": {
+					"theme_pack_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"pack_name": {
+						"type": "string"
+					},
+					"account_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"is_unlisted": {
+						"type": "boolean"
+					},
+					"created_at": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"cover_id": {
+						"type": ["string", "null"],
+						"format": "uuid"
+					},
+					"user_name": {
+						"type": "string"
+					},
+					"cover_key": {
+						"type": ["string", "null"]
+					},
+					"cover_thumb_key": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"theme_pack_with_items": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/theme_pack"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"items": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/media_item"
+								}
+							}
+						}
+					}
+				]
+			},
+			"media_id": {
+				"type": "string",
+				"format": "uuid"
+			},
+			"sign_size": {
+				"type": "string"
+			},
+			"sign_type": {
+				"type": "string"
+			},
+			"error": {
+				"type": "object",
+				"properties": {
+					"error": {
+						"type": "string"
+					}
+				},
+				"required": ["error"]
+			}
+		}
+	},
+	"security": [
+		{},
+		{
+			"SessionCookie": []
+		}
+	]
+}
