@@ -1,4 +1,4 @@
-# TRACKMEDIA.oi Plugin for Openplanet
+# TRACKMEDIA.io Plugin for Openplanet
 
 This Openplanet plugin for Trackmania 2020 exposes track and gameplay media data through the Openplanet scripting environment. It is designed for creators who want structured access to their media files from within Trackmania 2020.
 
