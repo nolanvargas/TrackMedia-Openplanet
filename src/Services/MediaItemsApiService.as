@@ -1,32 +1,18 @@
 namespace MediaItemsApiService {
-    void RequestMediaItems() {
-        RequestMediaItemsWithParams("", 20);
-    }
+    const int LIMIT = 30;
 
-    void RequestMediaItemsWithParams(const string &in after = "", int limit = 20) {
-        State::ResetMediaItemsRequest();
-        
-        string url = API::API_BASE_URL + "/media/latest?limit=" + limit;
-        if (after.Length > 0) {
-            url += "&after=" + after;
-        }
-        
-        auto json = API::GetAsync(url);
-        if (json.GetType() == Json::Type::Null) {
-            State::SetMediaItemsError("Error", "");
-            State::isRequestingMediaItems = false;
-            return;
-        }
-        
+    void RequestMediaItems() {
+        State::mediaItems.Reset();
+
+        auto json = API::GetAsync(
+            API::API_BASE_URL + "/media/latest?limit=" + LIMIT + FilterBar::BuildQueryParams()
+        );
+        if (json.GetType() == Json::Type::Null) { State::mediaItems.SetError("Error"); return; }
+
         State::ClearMediaItems();
-        
-        for (uint i = 0; i < json.Length; i++) {
-            MediaItem@ item = MediaItem(json[i]);
-            State::mediaItems.InsertLast(item);
-        }
-        
-        State::hasRequestedMediaItems = true;
-        
-        State::isRequestingMediaItems = false;
+        for (uint i = 0; i < json.Length; i++)
+            State::allMediaItems.InsertLast(MediaItem(json[i]));
+
+        State::mediaItems.Complete();
     }
 }

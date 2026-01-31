@@ -1,27 +1,32 @@
 class ThemePackTab : Tab {
     ThemePack@ m_themePack;
     bool m_hasRequestedData = false;
-    
+
     ThemePackTab(ThemePack@ themePack) {
         @m_themePack = themePack;
         color = Colors::TAB_THEME_PACK;
+        UpdateTabProperties();
         if (themePack !is null && themePack.GetSignTypeKeys().Length > 0) m_hasRequestedData = true;
     }
-        
-    string GetLabel() override {
-        if (m_themePack is null || m_themePack.packName.Length == 0) return "Unknown";
-        return TruncateLabel(m_themePack.packName);
+
+    void UpdateTabProperties() {
+        if (m_themePack !is null) {
+            tabId = m_themePack.themePackId;
+            label = m_themePack.packName.Length > 0 ? TruncateLabel(m_themePack.packName) : "Unknown";
+        } else {
+            tabId = "";
+            label = "Unknown";
+        }
     }
-    
-    vec4 GetColor(int index) override {
-        return GetShadeColorForIndex(index);
-    }
-    
+
     void Render() override {
         if (m_themePack is null) {
             UI::Text("Theme pack not found");
             return;
         }
+        // Update label in case the pack name was loaded after tab creation
+        UpdateTabProperties();
+
         array<string> signTypeKeys = m_themePack.GetSignTypeKeys();
         if (!m_hasRequestedData && signTypeKeys.Length == 0 && m_themePack.themePackId.Length > 0) {
             startnew(ThemePacksApiService::RequestThemePackByIdWithRef, m_themePack);
@@ -55,11 +60,7 @@ class ThemePackTab : Tab {
             UI::PopStyleColor(4);
         }
     }
-    
-    string GetTabId() override {
-        return m_themePack !is null ? m_themePack.themePackId : "";
-    }
-    
+
     ThemePack@ GetThemePack() {
         return m_themePack;
     }

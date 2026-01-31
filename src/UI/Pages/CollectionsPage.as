@@ -1,34 +1,38 @@
 namespace CollectionsPage {
     void Render() {
-        if (!State::hasRequestedCollections && !State::isRequestingCollections) {
-            State::isRequestingCollections = true;
+        if (!State::collections.hasRequested && !State::collections.isRequesting) {
+            State::collections.isRequesting = true;
             startnew(CollectionsApiService::RequestCollections);
         }
 
         State::collectionsTabSystem.RenderTabBar("CollectionTabs", "Collections");
         UI::Separator();
-        
-        Tab@ activeTab = State::collectionsTabSystem.GetActiveTab();
-        if (activeTab !is null && !State::collectionsTabSystem.IsPageTabActive()) {
-            activeTab.PushTabStyle(State::collectionsTabSystem.activeIndex);
-            activeTab.Render();
-            activeTab.PopTabStyleWithText();
-            return;
+
+        // Scrollable content area - keeps tab bar static
+        if (UI::BeginChild("CollectionsScroll", vec2(0, 0), false)) {
+            Tab@ activeTab = State::collectionsTabSystem.GetActiveTab();
+            if (activeTab !is null && !State::collectionsTabSystem.IsPageTabActive()) {
+                activeTab.PushTabStyle(State::collectionsTabSystem.activeIndex);
+                activeTab.Render();
+                activeTab.PopTabStyleWithText();
+            } else {
+                RenderGrid();
+            }
         }
-        
-        RenderGrid();
+        UI::EndChild();
     }
-    
+
     void RenderGrid() {
-        if (!PageHelpers::RenderGrid(State::collections.Length, State::isRequestingCollections, State::collectionsRequestStatus, "Loading collections...", "No collections found.")) {
+        if (!PageHelpers::RenderGrid(State::allCollections.Length, State::collections.isRequesting, State::collections.status, "Loading collections...", "No collections found.")) {
+            StyleHelpers::PushButton();
             if (UI::Button("Refresh")) {
-                State::hasRequestedCollections = false;
-                State::isRequestingCollections = true;
+                State::collections.hasRequested = false;
+                State::collections.isRequesting = true;
                 startnew(CollectionsApiService::RequestCollections);
             }
+            StyleHelpers::PopButton();
             return;
         }
-        Gallery::Render(State::collections);
+        Gallery::Render(State::allCollections);
     }
 }
-

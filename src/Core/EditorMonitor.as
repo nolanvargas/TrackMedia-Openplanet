@@ -26,9 +26,7 @@ namespace EditorMonitor {
         }
         
         string placeModeStr = "";
-        try { placeModeStr = tostring(mapType.PlaceMode); } catch {
-            Logging::Debug("Failed to get place mode");
-        }
+        try { placeModeStr = tostring(mapType.PlaceMode); } catch { }
         
         if (placeModeStr != "Skin") {
             State::showUI = false;

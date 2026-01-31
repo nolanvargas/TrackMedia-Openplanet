@@ -1,16 +1,15 @@
 namespace UIWindow {
-    // Layout constants
+    
     const float NAV_WIDTH = 180.0;
     const float MIN_WINDOW_WIDTH = NAV_WIDTH + 50.0;
     const float ITEM_SPACING = 2.0;
     
-    // State
     Header@ m_header = Header();
     Navigation@ m_navigation = Navigation();
     
     void SetActivePage(const string &in pageId) {
         if (m_navigation !is null) {
-            m_navigation.SetActivePage(pageId);
+            m_navigation.activePage = pageId;
         }
     }
     
@@ -31,7 +30,7 @@ namespace UIWindow {
     void Render() {
         if (!State::isInEditor || !State::showUI) return;
         
-        UI::PushStyleColor(UI::Col::WindowBg, Colors::WINDOW_BG);
+        UI::PushStyleColor(UI::Col::WindowBg, Colors::DARK);
         UI::PushStyleVar(UI::StyleVar::WindowPadding, vec2(0, 0));
         UI::Begin("TrackMedia", UI::WindowFlags::NoTitleBar);
         UI::PushStyleVar(UI::StyleVar::ItemSpacing, vec2(ITEM_SPACING, ITEM_SPACING));
@@ -57,7 +56,7 @@ namespace UIWindow {
                 
                 // Top section - page content
                 if (UI::BeginChild("Content", vec2(0, topSectionHeight), false, UI::WindowFlags::NoScrollbar | UI::WindowFlags::NoMove)) {
-                    PageRouter::Render(m_navigation.m_activePage);
+                    PageRouter::Render(m_navigation.activePage);
                     UI::EndChild();
                 }
                 

@@ -1,27 +1,31 @@
 class CollectionTab : Tab {
     Collection@ m_collection;
     bool m_hasRequestedData = false;
-    
+
     CollectionTab(Collection@ collection) {
         @m_collection = collection;
         color = Colors::TAB_DEFAULT;
+        UpdateTabProperties();
         if (collection !is null && collection.items.Length > 0) m_hasRequestedData = true;
     }
-    
-    string GetLabel() override {
-        if (m_collection is null || m_collection.collectionName.Length == 0) return "Unknown";
-        return TruncateLabel(m_collection.collectionName);
+
+    void UpdateTabProperties() {
+        if (m_collection !is null) {
+            tabId = m_collection.collectionId;
+            label = m_collection.collectionName.Length > 0 ? TruncateLabel(m_collection.collectionName) : "Unknown";
+        } else {
+            tabId = "";
+            label = "Unknown";
+        }
     }
-    
-    vec4 GetColor(int index) override {
-        return GetShadeColorForIndex(index);
-    }
-    
+
     void Render() override {
         if (m_collection is null) {
             UI::Text("Collection not found");
             return;
         }
+        UpdateTabProperties();
+
         if (!m_hasRequestedData && m_collection.items.Length == 0 && m_collection.collectionId.Length > 0) {
             startnew(CollectionsApiService::RequestCollectionByIdWithRef, m_collection);
             m_hasRequestedData = true;
@@ -33,11 +37,7 @@ class CollectionTab : Tab {
         }
         Gallery::Render(m_collection.items);
     }
-    
-    string GetTabId() override {
-        return m_collection !is null ? m_collection.collectionId : "";
-    }
-    
+
     Collection@ GetCollection() {
         return m_collection;
     }

@@ -11,11 +11,8 @@ namespace PinnedTabsStorage {
         string filePath = IO::FromStorageFolder("pinned_tabs.json");
         if (!IO::FileExists(filePath)) return;
         try {
-            IO::File file(filePath, IO::FileMode::Read);
-            string content = file.ReadToEnd();
-            file.Close();
-            if (content.Length == 0) return;
-            Json::Value root = Json::Parse(content);
+            Json::Value@ root = Json::FromFile(filePath);
+            if (root is null) return;
             Json::Value collectionsArray = root["collections"];
             for (uint i = 0; i < collectionsArray.Length; i++) {
                 Json::Value item = collectionsArray[i];
@@ -69,14 +66,14 @@ namespace PinnedTabsStorage {
                 c.collectionId = id;
                 c.collectionName = name;
                 CollectionTab@ tab = CollectionTab(c);
-                tab.SetPinned(true);
+                tab.isPinned = true;
                 restoredTabs.InsertLast(tab);
             } else {
                 ThemePack@ p = ThemePack();
                 p.themePackId = id;
                 p.packName = name;
                 ThemePackTab@ tab = ThemePackTab(p);
-                tab.SetPinned(true);
+                tab.isPinned = true;
                 restoredTabs.InsertLast(tab);
             }
         }
@@ -111,9 +108,7 @@ namespace PinnedTabsStorage {
         root["themePacks"] = themePacksArray;
         string filePath = IO::FromStorageFolder("pinned_tabs.json");
         try {
-            IO::File file(filePath, IO::FileMode::Write);
-            file.Write(Json::Write(root));
-            file.Close();
+            Json::ToFile(filePath, root);
         } catch {
             Logging::Error("Failed to save pinned tabs: " + getExceptionInfo());
         }

@@ -3,7 +3,6 @@ class CachedImage {
     UI::Texture@ texture;
     int responseCode;
     bool error = false;
-    bool notFound = false;
     bool unsupportedFormat = false;
 
     void DownloadFromURLAsync() {
@@ -13,7 +12,7 @@ class CachedImage {
             return;
         }
 
-        if (FileUtils::IsFileType(url, "webp") || FileUtils::IsFileType(url, "webm")) {
+        if (FileUtils::IsFileType(url, "webm")) {
             unsupportedFormat = true;
             return;
         }
@@ -29,38 +28,38 @@ class CachedImage {
 
         responseCode = req.ResponseCode();
         if (responseCode != 200) {
-            notFound = responseCode == 404;
             error = true;
             Logging::Warn("CachedImage: HTTP " + responseCode + " for " + url);
             return;
         }
 
-        req.Buffer().Seek(0);
-        @texture = UI::LoadTexture(req.Buffer());
+        auto buffer = req.Buffer();
+        uint64 bufferSize = buffer.GetSize();
+        buffer.Seek(0);
+        @texture = UI::LoadTexture(buffer);
         if (texture is null || texture.GetSize().x == 0) {
             @texture = null;
             error = true;
-            Logging::Warn("CachedImage: Failed to load texture from " + url);
+            Logging::Warn("CachedImage: Failed to load texture from " + url + " (buffer size: " + bufferSize + ")");
         }
     }
 }
 
 namespace Images {
-    dictionary g_cachedImages;
+    // LRU cache with max 200 images, evicts 20 at a time when full
+    LRUCache@ g_imageCache = LRUCache(200, 20);
 
     CachedImage@ FindExisting(const string &in url) {
-        CachedImage@ img;
-        g_cachedImages.Get(url, @img);
-        return img;
+        return cast<CachedImage>(g_imageCache.Get(url));
     }
 
     CachedImage@ CachedFromURL(const string &in url) {
-        CachedImage@ existing;
-        g_cachedImages.Get(url, @existing);
+        CachedImage@ existing = cast<CachedImage>(g_imageCache.Get(url));
         if (existing !is null) return existing;
+
         auto created = CachedImage();
         created.url = url;
-        g_cachedImages.Set(url, @created);
+        g_imageCache.Set(url, @created);
         startnew(CoroutineFunc(created.DownloadFromURLAsync));
         return created;
     }

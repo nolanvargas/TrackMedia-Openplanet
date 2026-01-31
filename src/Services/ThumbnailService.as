@@ -7,13 +7,17 @@ namespace ThumbnailService {
     
     void RequestThumbnailForCollection(ref@ data) {
         Collection@ collection = cast<Collection>(data);
-        if (collection is null || collection.coverKey.Length == 0) return;
-        @collection.cachedCover = Images::CachedFromURL(collection.GetCoverUrl());
+        if (collection is null) return;
+        string url = collection.GetCoverUrl();
+        if (url.Length == 0) return;
+        @collection.cachedCover = Images::CachedFromURL(url);
     }
     
     void RequestThumbnailForThemePack(ref@ data) {
         ThemePack@ themePack = cast<ThemePack>(data);
-        if (themePack is null || themePack.coverId.Length == 0) return;
-        @themePack.cachedCover = Images::CachedFromURL(themePack.GetCoverUrl());
+        if (themePack is null) return;
+        string url = themePack.GetCoverUrl();
+        if (url.Length == 0) return;
+        @themePack.cachedCover = Images::CachedFromURL(url);
     }
 }

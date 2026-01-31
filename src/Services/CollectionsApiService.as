@@ -1,47 +1,43 @@
 namespace CollectionsApiService {
-    void RequestCollections() {
-        RequestCollectionsWithParams("", 20);
-    }
+    const int LIMIT = 40;
 
-    void RequestCollectionsWithParams(const string &in after = "", int limit = 20) {        
-        State::ResetCollectionsRequest();
-        
-        string url = API::API_BASE_URL + "/collections?limit=" + limit;
-        if (after.Length > 0) {
-            url += "&after=" + after;
-        }
-        
+    void RequestCollections() {
+        State::collections.Reset();
+
+        string url = API::API_BASE_URL + "/collections?limit=" + LIMIT;
+
         auto json = API::GetAsync(url);
-        if (json.GetType() == Json::Type::Null) {
-            State::SetCollectionsError("Error");
-            State::isRequestingCollections = false;
+        if (!ApiHelpers::IsArrayResponse(json)) {
+            State::collections.SetError("Bad response from server");
             return;
         }
-        
-        State::SetCollectionsSuccess();
+
         State::ClearCollections();
-        
+
         for (uint i = 0; i < json.Length; i++) {
-            Collection@ collection = Collection(json[i]);
-            State::collections.InsertLast(collection);
-            startnew(ThumbnailService::RequestThumbnailForCollection, collection);
+            auto item = json[i];
+            // Skip external resources by checking the resource_id field
+            if (item["resource_id"].GetType() != Json::Type::Null) continue;
+
+            Collection@ c = Collection(item);
+            State::allCollections.InsertLast(c);
+            startnew(ThumbnailService::RequestThumbnailForCollection, c);
         }
-        
-        State::hasRequestedCollections = true;
-        
-        State::isRequestingCollections = false;
+
+        State::collections.Complete();
     }
-    
+
     void RequestCollectionById(Collection@ collection) {
+        if (collection is null) return;
         string url = API::API_BASE_URL + "/collections/" + collection.collectionId;
         auto json = API::GetAsync(url);
-        if (json.GetType() != Json::Type::Null) {
+        if (ApiHelpers::IsObjectResponse(json)) {
             collection.UpdateWithFullData(json);
         }
     }
-    
+
     void RequestCollectionByIdWithRef(ref@ data) {
-        Collection@ collection = cast<Collection>(data);
-        RequestCollectionById(collection);
+        Collection@ c = cast<Collection>(data);
+        RequestCollectionById(c);
     }
 }

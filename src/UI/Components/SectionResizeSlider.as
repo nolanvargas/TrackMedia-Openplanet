@@ -44,7 +44,8 @@ namespace SectionResizeSlider {
         float buttonX = currentPos.x + (availableWidth - buttonWidth) * 0.5;
         UI::PushStyleColor(UI::Col::Button, Colors::BUTTON);
         UI::PushStyleColor(UI::Col::ButtonHovered, Colors::BUTTON_HOVERED);
-        UI::PushStyleColor(UI::Col::ButtonActive, Colors::BUTTON_ACTIVE);
+        UI::PushStyleColor(UI::Col::ButtonActive, Colors::ACTIVE);
+        UI::PushStyleColor(UI::Col::HeaderActive, Colors::ACTIVE);
         UI::SetCursorPos(vec2(buttonX, adjustedButtonY));
         UI::Button("##ResizeButton", vec2(buttonWidth, buttonHeight));
         m_buttonWasHovered = UI::IsItemHovered();
@@ -58,6 +59,6 @@ namespace SectionResizeSlider {
             float maxBottomHeight = contentHeight * 0.35;
             m_bottomSectionHeight = Math::Clamp(m_bottomSectionHeight, minBottomHeight, maxBottomHeight);
         }
-        UI::PopStyleColor(3);
+        UI::PopStyleColor(4);
     }
 }

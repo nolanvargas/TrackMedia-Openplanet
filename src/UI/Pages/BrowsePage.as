@@ -1,25 +1,28 @@
 namespace BrowsePage {
     void Render(bool justActivated) {
-        // Only fetch data when page is first activated
-        if (justActivated && !State::hasRequestedMediaItems && !State::isRequestingMediaItems) {
-            State::isRequestingMediaItems = true;
+        if (FilterBar::Render() && !State::mediaItems.isRequesting) {
+            State::mediaItems.hasRequested = false;
+            State::mediaItems.isRequesting = true;
+            startnew(MediaItemsApiService::RequestMediaItems);
+        }
+        UI::Dummy(vec2(0, 4));
+
+        if (justActivated && !State::mediaItems.hasRequested && !State::mediaItems.isRequesting) {
+            State::mediaItems.isRequesting = true;
             startnew(MediaItemsApiService::RequestMediaItems);
         }
 
-        if (State::mediaItems.Length == 0) {
-            if (State::isRequestingMediaItems) {
-                UI::Text("Loading...");
-            } else {
-                UI::Text("No media items found.");
-                if (UI::Button("Refresh")) {
-                    State::hasRequestedMediaItems = false;
-                    State::isRequestingMediaItems = true;
-                    startnew(MediaItemsApiService::RequestMediaItems);
+        if (UI::BeginChild("BrowseScroll", vec2(0, 0), false)) {
+            if (State::allMediaItems.Length == 0) {
+                if (State::mediaItems.isRequesting) {
+                    PageHelpers::RenderCenteredMessage("Loading...");
+                } else {
+                    PageHelpers::RenderCenteredMessage("No media items found.");
                 }
+            } else {
+                Gallery::Render(State::allMediaItems);
             }
-            return;
         }
-
-        Gallery::Render(State::mediaItems);
+        UI::EndChild();
     }
 }

@@ -3,4 +3,7 @@ name     = "TrackMedia"
 author   = "Yhomas"
 category = "Map Editor"
 version  = "0.1.0"
-assets   = ["trebuc.ttf"]
+siteid   =  792
+
+[script]
+dependencies = ["NadeoServices"]

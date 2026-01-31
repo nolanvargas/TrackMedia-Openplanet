@@ -1,35 +1,38 @@
 namespace ThemePacksPage {
     void Render() {
-        if (!State::hasRequestedThemePacks && !State::isRequestingThemePacks) {
-            Logging::Info("ThemePacksPage: Starting theme packs request");
-            State::isRequestingThemePacks = true;
+        if (!State::themePacks.hasRequested && !State::themePacks.isRequesting) {
+            State::themePacks.isRequesting = true;
             startnew(ThemePacksApiService::RequestThemePacks);
         }
 
         State::themePacksTabSystem.RenderTabBar("ThemePackTabs", "Theme Packs");
         UI::Separator();
-        
-        Tab@ activeTab = State::themePacksTabSystem.GetActiveTab();
-        if (activeTab !is null && !State::themePacksTabSystem.IsPageTabActive()) {
-            activeTab.PushTabStyle(State::themePacksTabSystem.activeIndex);
-            activeTab.Render();
-            activeTab.PopTabStyleWithText();
-            return;
+
+        // Scrollable content area - keeps tab bar static
+        if (UI::BeginChild("ThemePacksScroll", vec2(0, 0), false)) {
+            Tab@ activeTab = State::themePacksTabSystem.GetActiveTab();
+            if (activeTab !is null && !State::themePacksTabSystem.IsPageTabActive()) {
+                activeTab.PushTabStyle(State::themePacksTabSystem.activeIndex);
+                activeTab.Render();
+                activeTab.PopTabStyleWithText();
+            } else {
+                RenderGrid();
+            }
         }
-        
-        RenderGrid();
+        UI::EndChild();
     }
-    
+
     void RenderGrid() {
-        if (!PageHelpers::RenderGrid(State::themePacks.Length, State::isRequestingThemePacks, State::themePacksRequestStatus, "Loading theme packs...", "No theme packs found.")) {
+        if (!PageHelpers::RenderGrid(State::allThemePacks.Length, State::themePacks.isRequesting, State::themePacks.status, "Loading theme packs...", "No theme packs found.")) {
+            StyleHelpers::PushButton();
             if (UI::Button("Refresh")) {
-                State::hasRequestedThemePacks = false;
-                State::isRequestingThemePacks = true;
+                State::themePacks.hasRequested = false;
+                State::themePacks.isRequesting = true;
                 startnew(ThemePacksApiService::RequestThemePacks);
             }
+            StyleHelpers::PopButton();
             return;
         }
-        Gallery::Render(State::themePacks);
+        Gallery::Render(State::allThemePacks);
     }
 }
-

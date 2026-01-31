@@ -34,8 +34,8 @@ namespace SkinPreviewRenderer {
         if (result is null) {
             if (skinFile.StartsWith("https://cdn.trackmedia.io/")) {
                 string key = skinFile.SubStr(28);
-                for (uint i = 0; i < State::mediaItems.Length; i++) {
-                    MediaItem@ item = State::mediaItems[i];
+                for (uint i = 0; i < State::allMediaItems.Length; i++) {
+                    MediaItem@ item = State::allMediaItems[i];
                     if (item.key == key && item.IsThumbLoaded()) {
                         @result = item.GetThumbTexture();
                         break;
@@ -75,11 +75,10 @@ namespace SkinPreviewRenderer {
         
         string text = "WEBM unsupported";
         
-        // Center text approximately (without precise measurement)
-        float padY = avail.y * 0.5 - 10.0f; // Approximate text height offset
-        float padX = avail.x * 0.5 - 60.0f; // Approximate text width offset
+        float padY = avail.y * 0.5 - 10.0f;
+        float padX = avail.x * 0.5 - 60.0f;
         
-        textBottomY = padY + 20.0f; // Approximate text height
+        textBottomY = padY + 20.0f;
         
         UI::SetCursorPos(vec2(padX, padY));
         UI::Text(text);
@@ -145,11 +144,9 @@ namespace SkinPreviewRenderer {
             auto@ editor = EditorUtils::GetEditorPluginMap();
             if (editor !is null) {
                 wstring currSkin = "";
-                try { 
-                    currSkin = editor.GetBlockSkin(State::selectedBlock); 
-                } catch {
-                    Logging::Debug("Failed to get block skin for preview");
-                }
+                try {
+                    currSkin = editor.GetBlockSkin(State::selectedBlock);
+                } catch { }
                 
                 if (currSkin.Length > 0) {
                     skinFile = string(currSkin);
